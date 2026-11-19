@@ -1,6 +1,10 @@
 import { Routes, Route, Navigate, Link } from 'react-router-dom';
 import MainLayout from '../layouts/MainLayout';
 import { ProtectedRoute, GuestRoute } from './ProtectedRoute';
+import LoginPage from '../page/auth/LoginPage';
+import RegisterPage from '../page/auth/RegisterPage';
+import ForgotPasswordPage from '../page/auth/ForgotPasswordPage';
+import ResetPasswordPage from '../page/auth/ResetPasswordPage';
 
 const PlaceholderPage = ({ title, description = 'Trang đang được xây dựng.' }) => (
   <div className="bg-white p-6 rounded-2xl border border-stone-200 shadow-sm">
@@ -52,10 +56,10 @@ const AppRoutes = () => {
 
         {/* 2. Khu vực Xác thực (Chỉ dành cho khách chưa đăng nhập) */}
         <Route element={<GuestRoute />}>
-          <Route path="/login" element={<PlaceholderPage title="Đăng nhập" />} />
-          <Route path="/register" element={<PlaceholderPage title="Đăng ký tài khoản" />} />
-          <Route path="/forgot-password" element={<PlaceholderPage title="Quên mật khẩu" />} />
-          <Route path="/reset-password" element={<PlaceholderPage title="Đặt lại mật khẩu" />} />
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/register" element={<RegisterPage />} />
+          <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+          <Route path="/reset-password" element={<ResetPasswordPage />} />
         </Route>
 
         {/* 3. Khu vực riêng của Customer */}
