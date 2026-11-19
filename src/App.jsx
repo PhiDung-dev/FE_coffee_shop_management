@@ -1,15 +1,12 @@
-import ReactRoute from "react-route"
-import Route from "react-route/lib/route"
+import { BrowserRouter } from 'react-router-dom';
+import AppRoutes from './routes/AppRoutes';
 
 function App() {
-
   return (
-    <>
-      <ReactRoute>
-        <Route ></Route>
-      </ReactRoute>
-    </>
-  )
+    <BrowserRouter>
+      <AppRoutes />
+    </BrowserRouter>
+  );
 }
 
-export default App
+export default App;
