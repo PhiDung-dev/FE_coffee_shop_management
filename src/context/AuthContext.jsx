@@ -8,7 +8,6 @@ export const AuthContext = createContext(null);
 const normalizeUserData = (result, token) => {
   const claims = parseJwt(token) || {};
 
-  // Lấy danh sách quyền từ response trực tiếp hoặc từ claim 'scope' của Spring OAuth2 JWT
   const rawScope = result?.role || result?.roles || claims?.scope || '';
   const roles = Array.isArray(rawScope)
     ? rawScope
@@ -16,14 +15,14 @@ const normalizeUserData = (result, token) => {
       ? rawScope.trim().split(/\s+/)
       : [];
 
-  // Chuẩn hóa role chính (bỏ tiền tố ROLE_ nếu có để dễ so sánh ở FE)
   const primaryRole = roles[0]?.replace(/^ROLE_/, '') || null;
+  const email = result?.email ?? claims?.sub ?? '';
 
   return {
     accountId: result?.accountId ?? result?.id ?? claims?.accountId ?? null,
-    username: result?.username ?? claims?.sub ?? '',
+    username: result?.username ?? email,
     fullName: result?.fullName ?? '',
-    email: result?.email ?? '',
+    email,
     role: primaryRole,
     roles,
   };
@@ -44,7 +43,6 @@ export const AuthProvider = ({ children }) => {
     setUser(null);
   }, []);
 
-  // Kiểm tra tính hợp lệ của token mỗi khi khởi động / reload ứng dụng
   useEffect(() => {
     const storedToken = localStorage.getItem('access_token');
     if (storedToken) {
@@ -61,7 +59,6 @@ export const AuthProvider = ({ children }) => {
   }, [logout, user]);
 
   const login = async (credentials) => {
-    // axiosClient đã interceptor trả về thẳng ApiResponse { code, message, result }
     const response = await authService.login(credentials);
     const result = response?.result;
     const accessToken = result?.token || result?.accessToken;

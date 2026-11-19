@@ -6,7 +6,7 @@ import passwordResetService from '../../service/passwordResetService';
 const ForgotPasswordPage = () => {
   const [email, setEmail] = useState('');
   const [error, setError] = useState('');
-  const [resetInfo, setResetInfo] = useState(null);
+  const [sentEmail, setSentEmail] = useState('');
   const [submitting, setSubmitting] = useState(false);
 
   const handleSubmit = async (e) => {
@@ -18,17 +18,14 @@ const ForgotPasswordPage = () => {
 
     setSubmitting(true);
     setError('');
-    setResetInfo(null);
+    setSentEmail('');
 
     try {
-      const response = await passwordResetService.forgotPassword({ email: email.trim() });
-      setResetInfo({
-        message: response?.message || 'Tạo mã token đặt lại mật khẩu thành công.',
-        token: response?.result?.token || '',
-        expiresAt: response?.result?.expiresAt || '',
-      });
+      const trimmedEmail = email.trim();
+      await passwordResetService.forgotPassword({ email: trimmedEmail });
+      setSentEmail(trimmedEmail);
     } catch (err) {
-      setError(err?.message || 'Không thể gửi yêu cầu đặt lại mật khẩu.');
+      setError(err?.message || 'Không thể gửi email đặt lại mật khẩu.');
     } finally {
       setSubmitting(false);
     }
@@ -43,7 +40,7 @@ const ForgotPasswordPage = () => {
           </div>
           <h1 className="text-2xl font-bold text-stone-800">Quên mật khẩu</h1>
           <p className="text-sm text-stone-500 mt-1">
-            Nhập email tài khoản để nhận mã xác nhận đặt lại mật khẩu
+            Nhập email tài khoản để nhận liên kết đặt lại mật khẩu
           </p>
         </div>
 
@@ -54,30 +51,17 @@ const ForgotPasswordPage = () => {
           </div>
         )}
 
-        {resetInfo && (
-          <div className="mb-5 p-4 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-900 text-sm space-y-2.5">
+        {sentEmail && (
+          <div className="mb-5 p-4 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-900 text-sm space-y-2">
             <div className="flex items-start gap-2 font-medium">
               <CheckCircle2 className="w-4 h-4 text-emerald-700 shrink-0 mt-0.5" />
-              <span>{resetInfo.message}</span>
+              <span>
+                Đã gửi liên kết đặt lại mật khẩu tới <strong>{sentEmail}</strong>.
+              </span>
             </div>
-
-            {resetInfo.token && (
-              <div className="p-2.5 bg-white rounded-lg border border-emerald-200 text-xs break-all">
-                <span className="text-stone-500 block mb-1">Mã token của bạn:</span>
-                <code className="font-mono font-semibold text-stone-800">{resetInfo.token}</code>
-              </div>
-            )}
-
-            <Link
-              to={
-                resetInfo.token
-                  ? `/reset-password?token=${encodeURIComponent(resetInfo.token)}`
-                  : '/reset-password'
-              }
-              className="inline-block w-full text-center py-2 px-3 bg-emerald-700 hover:bg-emerald-800 text-white font-semibold rounded-lg text-xs transition-colors"
-            >
-              Tiếp tục đặt lại mật khẩu
-            </Link>
+            <p className="text-xs text-emerald-800 pl-6">
+              Vui lòng kiểm tra hộp thư đến (hoặc mục Thư rác/Spam) và nhấn vào liên kết trong vòng 15 phút.
+            </p>
           </div>
         )}
 
@@ -110,7 +94,7 @@ const ForgotPasswordPage = () => {
             {submitting && (
               <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
             )}
-            <span>{submitting ? 'Đang xử lý...' : 'Gửi yêu cầu'}</span>
+            <span>{submitting ? 'Đang gửi email...' : 'Gửi liên kết đặt lại mật khẩu'}</span>
           </button>
         </form>
 
