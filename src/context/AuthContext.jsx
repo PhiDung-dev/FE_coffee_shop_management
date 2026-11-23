@@ -19,7 +19,7 @@ const normalizeUserData = (result, token) => {
   const email = result?.email ?? claims?.sub ?? '';
 
   return {
-    accountId: result?.accountId ?? result?.id ?? claims?.accountId ?? null,
+    accountId: claims?.accountId ?? claims?.id ?? result?.accountId ?? result?.id ?? null,
     username: result?.username ?? email,
     fullName: result?.fullName ?? '',
     email,
@@ -47,7 +47,6 @@ export const AuthProvider = ({ children }) => {
     const storedToken = localStorage.getItem('access_token');
     if (storedToken) {
       if (isTokenExpired(storedToken)) {
-        // eslint-disable-next-line react-hooks/set-state-in-effect
         logout();
       } else if (!user) {
         const restoredUser = normalizeUserData({}, storedToken);

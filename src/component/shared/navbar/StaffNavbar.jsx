@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Link, NavLink, useNavigate } from 'react-router-dom';
 import { Coffee, BadgeCheck, LogOut, Menu, X } from 'lucide-react';
-import useAuth from '../../hook/useAuth';
+import useAuth from '../../../hook/useAuth';
 
 const STAFF_LINKS = [
   { label: 'Bán hàng (POS)', path: '/staff/pos' },

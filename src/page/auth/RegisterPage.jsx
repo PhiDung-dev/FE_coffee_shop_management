@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Coffee, Eye, EyeOff, UserPlus, AlertCircle } from 'lucide-react';
 import accountService from '../../service/accountService';
+import userService from '../../service/userService';
 
 const RegisterPage = () => {
   const [formData, setFormData] = useState({
@@ -12,6 +13,7 @@ const RegisterPage = () => {
     fullName: '',
     dob: '',
     gender: 'MALE',
+    avatarUrl: '',
   });
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
@@ -28,7 +30,7 @@ const RegisterPage = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!formData.email.trim() || !formData.password || !formData.fullName.trim()) {
+    if (!formData.fullName.trim() || !formData.email.trim() || !formData.password) {
       setError('Vui lòng nhập đầy đủ họ tên, email và mật khẩu.');
       return;
     }
@@ -47,14 +49,37 @@ const RegisterPage = () => {
     setError('');
 
     try {
-      await accountService.createCustomerAccount({
+      // Bước 1: Tạo tài khoản Customer (POST /api/accounts/customer)
+      const accountRes = await accountService.createCustomerAccount({
         email: formData.email.trim(),
-        phone: formData.phone.trim() || null,
         password: formData.password,
-        fullName: formData.fullName.trim(),
-        dob: formData.dob || null,
-        gender: formData.gender || null,
+        phone: formData.phone.trim() || null,
       });
+
+      const accountId = accountRes?.result?.id;
+      if (!accountId) {
+        throw new Error('Không nhận được mã tài khoản từ máy chủ.');
+      }
+
+      // Bước 2: Tạo thông tin User gắn với accountId vừa tạo (POST /api/users)
+      try {
+        await userService.createUser({
+          fullName: formData.fullName.trim(),
+          avatarUrl: formData.avatarUrl.trim() || null,
+          dob: formData.dob || null,
+          gender: formData.gender || null,
+          accountId,
+        });
+      } catch {
+        navigate('/login', {
+          replace: true,
+          state: {
+            message:
+              'Tài khoản đã được tạo nhưng chưa lưu được hồ sơ cá nhân. Vui lòng đăng nhập để cập nhật.',
+          },
+        });
+        return;
+      }
 
       navigate('/login', {
         replace: true,
@@ -170,6 +195,22 @@ const RegisterPage = () => {
                 <option value="OTHER">Khác</option>
               </select>
             </div>
+          </div>
+
+          {/* Ảnh đại diện (tùy chọn) */}
+          <div>
+            <label htmlFor="avatarUrl" className="block text-sm font-medium text-stone-700 mb-1">
+              URL ảnh đại diện (tùy chọn)
+            </label>
+            <input
+              id="avatarUrl"
+              name="avatarUrl"
+              type="url"
+              value={formData.avatarUrl}
+              onChange={handleChange}
+              placeholder="https://..."
+              className="w-full px-3.5 py-2.5 rounded-xl border border-stone-300 text-sm focus:outline-none focus:ring-2 focus:ring-amber-600 focus:border-transparent"
+            />
           </div>
 
           {/* Mật khẩu & Xác nhận mật khẩu */}

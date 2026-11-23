@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Link, NavLink, useNavigate } from 'react-router-dom';
 import { Coffee, User, LogOut, Menu, X } from 'lucide-react';
-import useAuth from '../../hook/useAuth';
+import useAuth from '../../../hook/useAuth';
 
 const CUSTOMER_LINKS = [
   { label: 'Trang chủ', path: '/', end: true },

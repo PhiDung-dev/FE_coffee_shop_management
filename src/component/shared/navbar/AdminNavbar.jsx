@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Link, NavLink, useNavigate } from 'react-router-dom';
 import { Coffee, ShieldCheck, LogOut, Menu, X } from 'lucide-react';
-import useAuth from '../../hook/useAuth';
+import useAuth from '../../../hook/useAuth';
 
 const ADMIN_LINKS = [
   { label: 'Sản phẩm', path: '/admin/products' },

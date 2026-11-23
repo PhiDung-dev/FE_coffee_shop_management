@@ -5,6 +5,8 @@ import LoginPage from '../page/auth/LoginPage';
 import RegisterPage from '../page/auth/RegisterPage';
 import ForgotPasswordPage from '../page/auth/ForgotPasswordPage';
 import ResetPasswordPage from '../page/auth/ResetPasswordPage';
+import HomePage from '../page/shared/HomePage';
+import ProfilePage from '../page/protected/ProfilePage';
 
 const PlaceholderPage = ({ title, description = 'Trang đang được xây dựng.' }) => (
   <div className="bg-white p-6 rounded-2xl border border-stone-200 shadow-sm">
@@ -50,7 +52,7 @@ const AppRoutes = () => {
     <Routes>
       <Route element={<MainLayout />}>
         {/* 1. Khu vực Công khai (Khách vãng lai & Customer) */}
-        <Route path="/" element={<PlaceholderPage title="Trang chủ CoffeeHouse" />} />
+        <Route path="/" element={<HomePage />} />
         <Route path="/menu" element={<PlaceholderPage title="Thực đơn đồ uống" />} />
         <Route path="/vouchers" element={<PlaceholderPage title="Ưu đãi & Voucher" />} />
 
@@ -62,14 +64,18 @@ const AppRoutes = () => {
           <Route path="/reset-password" element={<ResetPasswordPage />} />
         </Route>
 
-        {/* 3. Khu vực riêng của Customer */}
+        {/* 3. Khu vực dùng chung cho tất cả Role đã đăng nhập */}
+        <Route element={<ProtectedRoute allowedRoles={['CUSTOMER', 'STAFF', 'ADMIN']} />}>
+          <Route path="/profile" element={<ProfilePage />} />
+        </Route>
+
+        {/* 4. Khu vực riêng của Customer */}
         <Route element={<ProtectedRoute allowedRoles={['CUSTOMER']} />}>
           <Route path="/reservations" element={<PlaceholderPage title="Đặt bàn trực tuyến" />} />
           <Route path="/my-orders" element={<PlaceholderPage title="Đơn hàng của tôi" />} />
-          <Route path="/profile" element={<PlaceholderPage title="Thông tin cá nhân" />} />
         </Route>
 
-        {/* 4. Khu vực riêng của Staff */}
+        {/* 5. Khu vực riêng của Staff */}
         <Route element={<ProtectedRoute allowedRoles={['STAFF']} />}>
           <Route path="/staff" element={<Navigate to="/staff/pos" replace />} />
           <Route path="/staff/pos" element={<PlaceholderPage title="Bán hàng tại quầy (POS)" />} />
@@ -79,7 +85,7 @@ const AppRoutes = () => {
           <Route path="/staff/invoices" element={<PlaceholderPage title="Tra cứu hóa đơn" />} />
         </Route>
 
-        {/* 5. Khu vực riêng của Admin */}
+        {/* 6. Khu vực riêng của Admin */}
         <Route element={<ProtectedRoute allowedRoles={['ADMIN']} />}>
           <Route path="/admin" element={<Navigate to="/admin/products" replace />} />
           <Route path="/admin/products" element={<PlaceholderPage title="Quản lý sản phẩm" />} />
@@ -92,7 +98,7 @@ const AppRoutes = () => {
           <Route path="/admin/invoices" element={<PlaceholderPage title="Quản lý hóa đơn" />} />
         </Route>
 
-        {/* 6. Trang báo lỗi hệ thống */}
+        {/* 7. Trang báo lỗi hệ thống */}
         <Route path="/403" element={<UnauthorizedPage />} />
         <Route path="*" element={<NotFoundPage />} />
       </Route>
