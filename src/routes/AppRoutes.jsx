@@ -6,7 +6,18 @@ import RegisterPage from '../page/auth/RegisterPage';
 import ForgotPasswordPage from '../page/auth/ForgotPasswordPage';
 import ResetPasswordPage from '../page/auth/ResetPasswordPage';
 import HomePage from '../page/shared/HomePage';
+import MenuPage from '../page/shared/MenuPage';
 import ProfilePage from '../page/protected/ProfilePage';
+import CheckoutPage from '../page/protected/CheckoutPage';
+import PaymentPage from '../page/protected/PaymentPage';
+import VNPayReturnPage from '../page/protected/VNPayReturnPage';
+import ReservationsPage from '../page/protected/ReservationsPage';
+import StaffPosPage from '../page/staff/StaffPosPage';
+import StaffTablesPage from '../page/staff/StaffTablesPage';
+import StaffReservationsPage from '../page/staff/StaffReservationsPage';
+import MyOrdersPage from '../page/protected/MyOrderPage';
+import StaffOrdersPage from '../page/staff/StaffOrdersPage';
+import StaffInvoicesPage from '../page/staff/StaffInvocesPage';
 
 const PlaceholderPage = ({ title, description = 'Trang đang được xây dựng.' }) => (
   <div className="bg-white p-6 rounded-2xl border border-stone-200 shadow-sm">
@@ -53,7 +64,7 @@ const AppRoutes = () => {
       <Route element={<MainLayout />}>
         {/* 1. Khu vực Công khai (Khách vãng lai & Customer) */}
         <Route path="/" element={<HomePage />} />
-        <Route path="/menu" element={<PlaceholderPage title="Thực đơn đồ uống" />} />
+        <Route path="/menu" element={<MenuPage />} />
         <Route path="/vouchers" element={<PlaceholderPage title="Ưu đãi & Voucher" />} />
 
         {/* 2. Khu vực Xác thực (Chỉ dành cho khách chưa đăng nhập) */}
@@ -71,18 +82,22 @@ const AppRoutes = () => {
 
         {/* 4. Khu vực riêng của Customer */}
         <Route element={<ProtectedRoute allowedRoles={['CUSTOMER']} />}>
-          <Route path="/reservations" element={<PlaceholderPage title="Đặt bàn trực tuyến" />} />
-          <Route path="/my-orders" element={<PlaceholderPage title="Đơn hàng của tôi" />} />
+          <Route path="/reservations" element={<ReservationsPage />} />
+          <Route path="/checkout" element={<CheckoutPage />} />
+          <Route path="/payment" element={<PaymentPage />} />
+          <Route path="/payment/vnpay-return" element={<VNPayReturnPage />} />
+          <Route path="/vnpay-return" element={<VNPayReturnPage />} />
+          <Route path="/my-orders" element={<MyOrdersPage />} />
         </Route>
 
         {/* 5. Khu vực riêng của Staff */}
         <Route element={<ProtectedRoute allowedRoles={['STAFF']} />}>
           <Route path="/staff" element={<Navigate to="/staff/pos" replace />} />
-          <Route path="/staff/pos" element={<PlaceholderPage title="Bán hàng tại quầy (POS)" />} />
-          <Route path="/staff/orders" element={<PlaceholderPage title="Quản lý đơn hàng" />} />
-          <Route path="/staff/tables" element={<PlaceholderPage title="Sơ đồ & Trạng thái bàn" />} />
-          <Route path="/staff/reservations" element={<PlaceholderPage title="Quản lý đặt bàn" />} />
-          <Route path="/staff/invoices" element={<PlaceholderPage title="Tra cứu hóa đơn" />} />
+          <Route path="/staff/pos" element={<StaffPosPage />} />
+          <Route path="/staff/orders" element={<StaffOrdersPage />} />
+          <Route path="/staff/tables" element={<StaffTablesPage />} />
+          <Route path="/staff/reservations" element={<StaffReservationsPage />} />
+          <Route path="/staff/invoices" element={<StaffInvoicesPage />} />
         </Route>
 
         {/* 6. Khu vực riêng của Admin */}
@@ -95,7 +110,7 @@ const AppRoutes = () => {
           <Route path="/admin/vouchers" element={<PlaceholderPage title="Quản lý Voucher" />} />
           <Route path="/admin/accounts" element={<PlaceholderPage title="Quản lý tài khoản" />} />
           <Route path="/admin/orders" element={<PlaceholderPage title="Quản lý đơn hàng" />} />
-          <Route path="/admin/invoices" element={<PlaceholderPage title="Quản lý hóa đơn" />} />
+          <Route path="/admin/invoices" element={<StaffInvoicesPage />} />
         </Route>
 
         {/* 7. Trang báo lỗi hệ thống */}

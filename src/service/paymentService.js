@@ -25,6 +25,15 @@ const paymentService = {
   deletePayment: (id) => {
     return axiosClient.delete(`/api/payments/${id}`);
   },
+
+  // VNPay (VNPayController)
+  createVnpayUrl: (paymentId) => {
+    return axiosClient.post(`/api/payments/vnpay/create-url/${paymentId}`);
+  },
+
+  verifyVnpayReturn: (params = {}) => {
+    return axiosClient.get('/api/payments/vnpay/return', { params });
+  },
 };
 
 export default paymentService;

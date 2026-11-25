@@ -15,11 +15,13 @@ import {
   Camera,
   Clock,
   ChevronRight,
+  Building2,
 } from 'lucide-react';
 import accountService from '../../service/accountService';
 import userService from '../../service/userService';
 import useAuth from '../../hook/useAuth';
 import { parseJwt } from '../../utils/jwtUtils';
+import TaxProfileManager from '../../component/customer/TaxProfileManager';
 
 const formatDateTime = (dateStr) => {
   if (!dateStr) return '—';
@@ -46,6 +48,12 @@ const TABS = [
     label: 'Tài khoản & Bảo mật',
     description: 'Email, số điện thoại & mật khẩu',
     icon: Shield,
+  },
+  {
+    id: 'tax',
+    label: 'Hóa đơn VAT & MST',
+    description: 'Thông tin công ty xuất hóa đơn đỏ',
+    icon: Building2,
   },
 ];
 
@@ -451,9 +459,9 @@ const ProfilePage = () => {
         </aside>
 
         {/* Nội dung Tab tương ứng */}
-        <section className="md:col-span-8 bg-white rounded-2xl border border-stone-200 shadow-sm p-6">
-          {activeTab === 'profile' ? (
-            <>
+        <section className="md:col-span-8">
+          {activeTab === 'profile' && (
+            <div className="bg-white rounded-2xl border border-stone-200 shadow-sm p-6">
               <div className="flex items-center justify-between mb-5 pb-4 border-b border-stone-100">
                 <div className="flex items-center gap-2.5">
                   <div className="w-9 h-9 rounded-xl bg-amber-50 text-amber-800 flex items-center justify-center">
@@ -589,9 +597,11 @@ const ProfilePage = () => {
                   </button>
                 </div>
               </form>
-            </>
-          ) : (
-            <>
+            </div>
+          )}
+
+          {activeTab === 'account' && (
+            <div className="bg-white rounded-2xl border border-stone-200 shadow-sm p-6">
               <div className="flex items-center justify-between mb-5 pb-4 border-b border-stone-100">
                 <div className="flex items-center gap-2.5">
                   <div className="w-9 h-9 rounded-xl bg-stone-100 text-stone-700 flex items-center justify-center">
@@ -742,8 +752,10 @@ const ProfilePage = () => {
                   </button>
                 </div>
               </form>
-            </>
+            </div>
           )}
+
+          {activeTab === 'tax' && <TaxProfileManager accountId={accountId} />}
         </section>
       </div>
     </div>
