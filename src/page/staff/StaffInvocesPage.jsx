@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import {
   FileText,
   Search,
@@ -7,7 +7,6 @@ import {
   Building2,
   User,
   Eye,
-  Trash2,
   RefreshCw,
   X,
   CheckCircle2,
@@ -19,13 +18,12 @@ import {
   Receipt,
   CreditCard,
   Banknote,
+  ShieldCheck,
 } from 'lucide-react';
 import invoiceService from '../../service/invoiceService';
 import taxProfileService from '../../service/taxProfileService';
 import orderService from '../../service/orderService';
 import paymentService from '../../service/paymentService';
-import useAuth from '../../hook/useAuth';
-import { parseJwt } from '../../utils/jwtUtils';
 
 const formatPrice = (price) => {
   if (price == null || isNaN(price)) return '0 ₫';
@@ -154,11 +152,6 @@ const handlePrintInvoiceWindow = (invoice, order, payment) => {
 };
 
 const StaffInvoicesPage = () => {
-  const { user, token } = useAuth();
-  const claims = token ? parseJwt(token) : null;
-  const role = (claims?.role || user?.role || '').toUpperCase();
-  const isAdmin = role.includes('ADMIN');
-
   // Danh sách hóa đơn phân trang
   const [invoices, setInvoices] = useState([]);
   const [page, setPage] = useState(0);
@@ -172,7 +165,9 @@ const StaffInvoicesPage = () => {
   const [invoiceTypeFilter, setInvoiceTypeFilter] = useState('ALL'); // 'ALL' | 'VAT' | 'RETAIL'
 
   const [loading, setLoading] = useState(true);
+  const [printingId, setPrintingId] = useState(null);
   const [feedback, setFeedback] = useState({ type: '', message: '' });
+  const feedbackTimerRef = useRef(null);
 
   // Modal Xuất hóa đơn mới
   const [showCreateModal, setShowCreateModal] = useState(false);
@@ -180,7 +175,7 @@ const StaffInvoicesPage = () => {
   const [loadingOrders, setLoadingOrders] = useState(false);
   const [selectedOrderId, setSelectedOrderId] = useState('');
   const [customerTaxProfiles, setCustomerTaxProfiles] = useState([]);
-  const [selectedTaxProfileId, setSelectedTaxProfileId] = useState(''); // '' = Khách lẻ, 'NEW' = Tạo mới, '<id>' = Chọn sẵn
+  const [selectedTaxProfileId, setSelectedTaxProfileId] = useState('');
   const [newTaxForm, setNewTaxForm] = useState({
     companyName: '',
     taxCode: '',
@@ -188,7 +183,7 @@ const StaffInvoicesPage = () => {
   });
   const [creatingInvoice, setCreatingInvoice] = useState(false);
 
-  // Modal Xem chi tiết / In / Cập nhật VAT hóa đơn
+  // Modal Xem chi tiết / In / Cập nhật VAT hóa đơn (Staff không có quyền Xóa)
   const [detailModal, setDetailModal] = useState({
     open: false,
     invoice: null,
@@ -205,6 +200,20 @@ const StaffInvoicesPage = () => {
     companyAddress: '',
   });
   const [updatingVat, setUpdatingVat] = useState(false);
+
+  const showFeedback = useCallback((type, message) => {
+    setFeedback({ type, message });
+    if (feedbackTimerRef.current) clearTimeout(feedbackTimerRef.current);
+    feedbackTimerRef.current = setTimeout(() => {
+      setFeedback({ type: '', message: '' });
+    }, 3600);
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      if (feedbackTimerRef.current) clearTimeout(feedbackTimerRef.current);
+    };
+  }, []);
 
   const fetchInvoices = useCallback(async () => {
     setLoading(true);
@@ -234,14 +243,11 @@ const StaffInvoicesPage = () => {
         setInvoices([]);
       }
     } catch (err) {
-      setFeedback({
-        type: 'error',
-        message: err?.message || 'Không thể tải danh sách hóa đơn.',
-      });
+      showFeedback('error', err?.message || 'Không thể tải danh sách hóa đơn.');
     } finally {
       setLoading(false);
     }
-  }, [page, keyword, fromDate, toDate]);
+  }, [page, keyword, fromDate, toDate, showFeedback]);
 
   useEffect(() => {
     fetchInvoices();
@@ -287,18 +293,18 @@ const StaffInvoicesPage = () => {
 
       const invoicedOrderIds = new Set(existingInvoices.map((i) => Number(i.orderId)));
 
-      // Chỉ lọc các đơn chưa bị hủy và chưa xuất hóa đơn
       const candidates = allOrders.filter(
         (o) =>
-          (o.status || '').toUpperCase() !== 'CANCELLED' && !invoicedOrderIds.has(Number(o.id))
+          (o.status || '').toUpperCase() !== 'CANCELLED' &&
+          !invoicedOrderIds.has(Number(o.id))
       );
 
       setEligibleOrders(candidates);
     } catch (err) {
-      setFeedback({
-        type: 'error',
-        message: err?.message || 'Không thể tải danh sách đơn hàng chờ xuất hóa đơn.',
-      });
+      showFeedback(
+        'error',
+        err?.message || 'Không thể tải danh sách đơn hàng chờ xuất hóa đơn.'
+      );
     } finally {
       setLoadingOrders(false);
     }
@@ -328,7 +334,7 @@ const StaffInvoicesPage = () => {
   const handleSubmitCreateInvoice = async (e) => {
     e.preventDefault();
     if (!selectedOrderId) {
-      setFeedback({ type: 'error', message: 'Vui lòng chọn đơn hàng cần xuất hóa đơn.' });
+      showFeedback('error', 'Vui lòng chọn đơn hàng cần xuất hóa đơn.');
       return;
     }
 
@@ -340,10 +346,7 @@ const StaffInvoicesPage = () => {
 
       if (selectedTaxProfileId === 'NEW') {
         if (!newTaxForm.companyName.trim() || !newTaxForm.taxCode.trim()) {
-          setFeedback({
-            type: 'error',
-            message: 'Vui lòng nhập đầy đủ Tên công ty và Mã số thuế.',
-          });
+          showFeedback('error', 'Vui lòng nhập đầy đủ Tên công ty và Mã số thuế.');
           setCreatingInvoice(false);
           return;
         }
@@ -352,7 +355,9 @@ const StaffInvoicesPage = () => {
           companyName: newTaxForm.companyName.trim(),
           taxCode: newTaxForm.taxCode.trim(),
           companyAddress: newTaxForm.companyAddress.trim() || null,
-          accountId: chosenOrder?.customerAccountId ? Number(chosenOrder.customerAccountId) : null,
+          accountId: chosenOrder?.customerAccountId
+            ? Number(chosenOrder.customerAccountId)
+            : null,
         });
         finalTaxProfileId = taxCreateRes?.result?.id ?? null;
       } else if (selectedTaxProfileId) {
@@ -368,15 +373,15 @@ const StaffInvoicesPage = () => {
       setShowCreateModal(false);
       await fetchInvoices();
 
-      setFeedback({
-        type: 'success',
-        message: `Đã xuất hóa đơn ${createdInvoice?.invoiceNumber || ''} thành công!`,
-      });
+      showFeedback(
+        'success',
+        `Đã xuất hóa đơn ${createdInvoice?.invoiceNumber || ''} thành công!`
+      );
     } catch (err) {
-      setFeedback({
-        type: 'error',
-        message: err?.message || 'Không thể xuất hóa đơn. Kiểm tra trạng thái thanh toán của đơn.',
-      });
+      showFeedback(
+        'error',
+        err?.message || 'Không thể xuất hóa đơn. Kiểm tra trạng thái thanh toán của đơn.'
+      );
     } finally {
       setCreatingInvoice(false);
     }
@@ -417,10 +422,31 @@ const StaffInvoicesPage = () => {
     }
   };
 
+  // In nhanh hóa đơn ngay từ dòng bảng
+  const handleQuickPrintInvoice = async (invoice) => {
+    setPrintingId(invoice.id);
+    try {
+      const [orderRes, payRes] = await Promise.all([
+        invoice.orderId ? orderService.getOrderById(invoice.orderId).catch(() => null) : null,
+        invoice.orderId
+          ? paymentService.getPaymentsByOrderId(invoice.orderId).catch(() => null)
+          : null,
+      ]);
+      const orderData = orderRes?.result || null;
+      const payList = Array.isArray(payRes?.result) ? payRes.result : [];
+      const paidPayment = payList.find((p) => isPaymentSuccessful(p)) || payList[0] || null;
+      handlePrintInvoiceWindow(invoice, orderData, paidPayment);
+    } finally {
+      setPrintingId(null);
+    }
+  };
+
   // Mở form cập nhật / bổ sung VAT trên hóa đơn đã xuất
   const handleStartEditVat = async () => {
     setEditingVat(true);
-    setEditSelectedTaxId(detailModal.invoice?.taxProfileId ? String(detailModal.invoice.taxProfileId) : '');
+    setEditSelectedTaxId(
+      detailModal.invoice?.taxProfileId ? String(detailModal.invoice.taxProfileId) : ''
+    );
     setEditNewTaxForm({ companyName: '', taxCode: '', companyAddress: '' });
 
     const custId = detailModal.order?.customerAccountId;
@@ -445,7 +471,7 @@ const StaffInvoicesPage = () => {
 
       if (editSelectedTaxId === 'NEW') {
         if (!editNewTaxForm.companyName.trim() || !editNewTaxForm.taxCode.trim()) {
-          setFeedback({ type: 'error', message: 'Vui lòng nhập Tên công ty và Mã số thuế.' });
+          showFeedback('error', 'Vui lòng nhập Tên công ty và Mã số thuế.');
           setUpdatingVat(false);
           return;
         }
@@ -470,97 +496,65 @@ const StaffInvoicesPage = () => {
       setDetailModal((prev) => ({ ...prev, invoice: updatedInvoice }));
       setEditingVat(false);
       await fetchInvoices();
-      setFeedback({
-        type: 'success',
-        message: `Đã cập nhật thông tin VAT cho hóa đơn ${updatedInvoice.invoiceNumber}.`,
-      });
+      showFeedback(
+        'success',
+        `Đã cập nhật thông tin VAT cho hóa đơn ${updatedInvoice.invoiceNumber}.`
+      );
     } catch (err) {
-      setFeedback({
-        type: 'error',
-        message: err?.message || 'Không thể cập nhật thông tin thuế cho hóa đơn.',
-      });
+      showFeedback(
+        'error',
+        err?.message || 'Không thể cập nhật thông tin thuế cho hóa đơn.'
+      );
     } finally {
       setUpdatingVat(false);
-    }
-  };
-
-  const handleDeleteInvoice = async (invoice) => {
-    if (!window.confirm(`Xác nhận xóa hóa đơn ${invoice.invoiceNumber}?`)) return;
-    try {
-      await invoiceService.deleteInvoice(invoice.id);
-      await fetchInvoices();
-      setFeedback({
-        type: 'success',
-        message: `Đã xóa hóa đơn ${invoice.invoiceNumber}.`,
-      });
-    } catch (err) {
-      setFeedback({
-        type: 'error',
-        message: err?.message || 'Không thể xóa hóa đơn này.',
-      });
     }
   };
 
   return (
     <div className="space-y-6 pb-12">
       {/* Header */}
-      <div className="bg-white rounded-2xl border border-stone-200 p-6 shadow-2xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-extrabold text-stone-800">Quản lý & Xuất hóa đơn</h1>
-          <p className="text-sm text-stone-500 mt-0.5">
-            Tra cứu chứng từ bán hàng, xuất hóa đơn lẻ hoặc hóa đơn VAT doanh nghiệp theo MST
-          </p>
-        </div>
+      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-stone-900 via-stone-800 to-amber-950 text-white p-6 sm:p-7 shadow-sm">
+        <div className="absolute -right-10 -top-10 w-52 h-52 rounded-full bg-amber-500/10 blur-2xl pointer-events-none" />
 
-        <div className="flex flex-wrap items-center gap-2.5">
-          <button
-            type="button"
-            onClick={fetchInvoices}
-            className="inline-flex items-center gap-1.5 px-3.5 py-2.5 rounded-xl border border-stone-300 bg-white hover:bg-stone-50 text-sm font-semibold text-stone-700 cursor-pointer"
-          >
-            <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
-            <span>Làm mới</span>
-          </button>
+        <div className="relative flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="space-y-1.5">
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/10 border border-white/15 text-amber-200 text-xs font-semibold">
+              <ShieldCheck className="w-3.5 h-3.5" />
+              <span>Nghiệp vụ Quầy thu ngân • Xuất & In chứng từ</span>
+            </div>
+            <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight">
+              Quản lý & Xuất hóa đơn
+            </h1>
+            <p className="text-sm text-stone-300 max-w-2xl">
+              Tra cứu chứng từ bán hàng, lập hóa đơn bán lẻ hoặc bổ sung thông tin hóa đơn VAT
+              doanh nghiệp theo mã số thuế.
+            </p>
+          </div>
 
-          <button
-            type="button"
-            onClick={handleOpenCreateModal}
-            className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-amber-700 hover:bg-amber-800 text-white text-sm font-semibold shadow-2xs transition-colors cursor-pointer"
-          >
-            <Plus className="w-4 h-4" />
-            <span>Xuất hóa đơn mới</span>
-          </button>
+          <div className="flex flex-wrap items-center gap-2.5 self-start sm:self-center">
+            <button
+              type="button"
+              onClick={fetchInvoices}
+              className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-white/10 hover:bg-white/15 border border-white/15 text-white text-xs sm:text-sm font-semibold cursor-pointer transition-colors"
+            >
+              <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
+              <span>Làm mới</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={handleOpenCreateModal}
+              className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-stone-950 text-xs sm:text-sm font-bold shadow-sm transition-colors cursor-pointer"
+            >
+              <Plus className="w-4 h-4 stroke-[2.5]" />
+              <span>Xuất hóa đơn mới</span>
+            </button>
+          </div>
         </div>
       </div>
 
-      {feedback.message && (
-        <div
-          className={`p-4 rounded-2xl border text-sm flex items-center justify-between gap-3 ${
-            feedback.type === 'error'
-              ? 'bg-red-50 border-red-200 text-red-700'
-              : 'bg-emerald-50 border-emerald-200 text-emerald-800'
-          }`}
-        >
-          <div className="flex items-center gap-2">
-            {feedback.type === 'error' ? (
-              <AlertCircle className="w-4 h-4 shrink-0" />
-            ) : (
-              <CheckCircle2 className="w-4 h-4 shrink-0" />
-            )}
-            <span>{feedback.message}</span>
-          </div>
-          <button
-            type="button"
-            onClick={() => setFeedback({ type: '', message: '' })}
-            className="p-1 opacity-70 hover:opacity-100 cursor-pointer"
-          >
-            <X className="w-4 h-4" />
-          </button>
-        </div>
-      )}
-
       {/* Thanh bộ lọc tìm kiếm */}
-      <div className="bg-white rounded-2xl border border-stone-200 p-4 shadow-2xs space-y-3">
+      <div className="bg-white rounded-2xl border border-stone-200/90 p-4 shadow-2xs space-y-3">
         <div className="grid grid-cols-1 md:grid-cols-12 gap-3 items-end">
           <div className="md:col-span-5">
             <label className="block text-xs font-semibold text-stone-500 mb-1">
@@ -633,7 +627,7 @@ const StaffInvoicesPage = () => {
 
         {/* Phân loại hóa đơn lẻ vs VAT công ty */}
         <div className="pt-3 border-t border-stone-100 flex flex-wrap items-center justify-between gap-2">
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             {[
               { key: 'ALL', label: 'Tất cả hóa đơn' },
               { key: 'VAT', label: 'Hóa đơn VAT (Doanh nghiệp)' },
@@ -643,7 +637,7 @@ const StaffInvoicesPage = () => {
                 key={t.key}
                 type="button"
                 onClick={() => setInvoiceTypeFilter(t.key)}
-                className={`px-3 py-1.5 rounded-lg text-xs font-semibold cursor-pointer ${
+                className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition-colors cursor-pointer ${
                   invoiceTypeFilter === t.key
                     ? 'bg-stone-800 text-white'
                     : 'bg-stone-100 text-stone-600 hover:bg-stone-200'
@@ -661,7 +655,7 @@ const StaffInvoicesPage = () => {
       </div>
 
       {/* Bảng danh sách hóa đơn */}
-      <div className="bg-white rounded-2xl border border-stone-200 shadow-2xs overflow-hidden">
+      <div className="bg-white rounded-2xl border border-stone-200/90 shadow-2xs overflow-hidden">
         {loading ? (
           <div className="p-6 space-y-3">
             {[...Array(5)].map((_, i) => (
@@ -680,21 +674,21 @@ const StaffInvoicesPage = () => {
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse text-sm">
               <thead>
-                <tr className="bg-stone-50 border-b border-stone-200 text-xs font-bold uppercase text-stone-500">
-                  <th className="py-3.5 px-4">Số hóa đơn</th>
+                <tr className="bg-stone-50 border-b border-stone-200 text-[11px] font-bold uppercase tracking-wider text-stone-500">
+                  <th className="py-3.5 px-5">Số hóa đơn</th>
                   <th className="py-3.5 px-4">Mã đơn hàng</th>
                   <th className="py-3.5 px-4">Đối tượng / Thông tin VAT</th>
                   <th className="py-3.5 px-4">Ngày phát hành</th>
                   <th className="py-3.5 px-4 text-right">Tổng tiền</th>
-                  <th className="py-3.5 px-4 text-right">Thao tác</th>
+                  <th className="py-3.5 px-5 text-right">Thao tác</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-stone-100">
                 {displayedInvoices.map((inv) => {
                   const hasVat = Boolean(inv.taxProfileId || inv.companyName);
                   return (
-                    <tr key={inv.id} className="hover:bg-stone-50/80 transition-colors">
-                      <td className="py-3.5 px-4 font-mono font-bold text-amber-800">
+                    <tr key={inv.id} className="hover:bg-amber-50/30 transition-colors">
+                      <td className="py-3.5 px-5 font-mono font-bold text-amber-800">
                         {inv.invoiceNumber}
                       </td>
                       <td className="py-3.5 px-4 font-mono text-xs font-semibold text-stone-700">
@@ -703,16 +697,18 @@ const StaffInvoicesPage = () => {
                       <td className="py-3.5 px-4">
                         {hasVat ? (
                           <div className="space-y-0.5">
-                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-sky-50 text-sky-800 border border-sky-200 text-[11px] font-bold">
-                              <Building2 className="w-3 h-3" />
+                            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-lg bg-sky-50 text-sky-800 border border-sky-200 text-xs font-bold">
+                              <Building2 className="w-3 h-3 shrink-0" />
                               <span>{inv.companyName}</span>
                             </span>
                             {inv.taxCode && (
-                              <p className="text-xs font-mono text-stone-500">MST: {inv.taxCode}</p>
+                              <p className="text-xs font-mono text-stone-500">
+                                MST: {inv.taxCode}
+                              </p>
                             )}
                           </div>
                         ) : (
-                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-stone-100 text-stone-600 text-xs font-medium">
+                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-lg bg-stone-100 text-stone-600 text-xs font-medium">
                             <User className="w-3 h-3" />
                             <span>Khách lẻ</span>
                           </span>
@@ -724,27 +720,27 @@ const StaffInvoicesPage = () => {
                       <td className="py-3.5 px-4 text-right font-extrabold text-stone-800">
                         {formatPrice(inv.orderFinalAmount)}
                       </td>
-                      <td className="py-3.5 px-4">
+                      <td className="py-3.5 px-5">
                         <div className="flex items-center justify-end gap-2">
                           <button
                             type="button"
                             onClick={() => handleOpenInvoiceDetail(inv)}
-                            className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg border border-stone-300 bg-white hover:bg-stone-50 text-xs font-semibold text-stone-700 cursor-pointer"
+                            className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl border border-stone-300 bg-white hover:border-amber-400 hover:bg-amber-50/50 text-xs font-semibold text-stone-700 cursor-pointer transition-colors"
                           >
                             <Eye className="w-3.5 h-3.5" />
-                            <span>Xem / In</span>
+                            <span>Chi tiết / VAT</span>
                           </button>
 
-                          {isAdmin && (
-                            <button
-                              type="button"
-                              onClick={() => handleDeleteInvoice(inv)}
-                              title="Xóa hóa đơn"
-                              className="p-1.5 rounded-lg border border-red-200 text-red-600 hover:bg-red-50 cursor-pointer"
-                            >
-                              <Trash2 className="w-3.5 h-3.5" />
-                            </button>
-                          )}
+                          <button
+                            type="button"
+                            disabled={printingId === inv.id}
+                            onClick={() => handleQuickPrintInvoice(inv)}
+                            title="In hóa đơn ngay"
+                            className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl bg-stone-800 hover:bg-stone-900 disabled:opacity-50 text-white text-xs font-semibold cursor-pointer transition-colors"
+                          >
+                            <Printer className="w-3.5 h-3.5" />
+                            <span>{printingId === inv.id ? '...' : 'In'}</span>
+                          </button>
                         </div>
                       </td>
                     </tr>
@@ -794,7 +790,9 @@ const StaffInvoicesPage = () => {
             className="bg-white rounded-2xl max-w-lg w-full max-h-[90vh] flex flex-col overflow-hidden shadow-2xl border border-stone-200"
           >
             <div className="p-5 border-b border-stone-200 flex items-center justify-between">
-              <h2 className="text-base font-extrabold text-stone-800">Xuất hóa đơn bán hàng</h2>
+              <h2 className="text-base font-extrabold text-stone-800">
+                Xuất hóa đơn bán hàng
+              </h2>
               <button
                 type="button"
                 onClick={() => setShowCreateModal(false)}
@@ -828,7 +826,8 @@ const StaffInvoicesPage = () => {
                     <option value="">-- Chọn mã đơn hàng --</option>
                     {eligibleOrders.map((ord) => (
                       <option key={ord.id} value={ord.id}>
-                        {ord.orderCode || `#${ord.id}`} • {formatPrice(ord.finalAmount)} ({ord.status})
+                        {ord.orderCode || `#${ord.id}`} • {formatPrice(ord.finalAmount)} (
+                        {ord.status})
                       </option>
                     ))}
                   </select>
@@ -983,12 +982,16 @@ const StaffInvoicesPage = () => {
                 {!editingVat ? (
                   detailModal.invoice.companyName ? (
                     <div className="text-xs space-y-1 text-stone-700">
-                      <p className="font-bold text-stone-900">{detailModal.invoice.companyName}</p>
+                      <p className="font-bold text-stone-900">
+                        {detailModal.invoice.companyName}
+                      </p>
                       <p className="font-mono">MST: {detailModal.invoice.taxCode || '—'}</p>
                       <p>Địa chỉ: {detailModal.invoice.companyAddress || '—'}</p>
                     </div>
                   ) : (
-                    <p className="text-xs text-stone-500">Hóa đơn bán lẻ (Chưa gắn MST công ty)</p>
+                    <p className="text-xs text-stone-500">
+                      Hóa đơn bán lẻ (Chưa gắn MST công ty)
+                    </p>
                   )
                 ) : (
                   <div className="space-y-2.5 pt-1">
@@ -1012,7 +1015,10 @@ const StaffInvoicesPage = () => {
                           type="text"
                           value={editNewTaxForm.companyName}
                           onChange={(e) =>
-                            setEditNewTaxForm({ ...editNewTaxForm, companyName: e.target.value })
+                            setEditNewTaxForm({
+                              ...editNewTaxForm,
+                              companyName: e.target.value,
+                            })
                           }
                           placeholder="Tên công ty *"
                           className="w-full px-3 py-1.5 rounded-lg border border-stone-300 bg-white text-xs"
@@ -1030,7 +1036,10 @@ const StaffInvoicesPage = () => {
                           type="text"
                           value={editNewTaxForm.companyAddress}
                           onChange={(e) =>
-                            setEditNewTaxForm({ ...editNewTaxForm, companyAddress: e.target.value })
+                            setEditNewTaxForm({
+                              ...editNewTaxForm,
+                              companyAddress: e.target.value,
+                            })
                           }
                           placeholder="Địa chỉ công ty"
                           className="w-full px-3 py-1.5 rounded-lg border border-stone-300 bg-white text-xs"
@@ -1067,7 +1076,10 @@ const StaffInvoicesPage = () => {
                   <div className="space-y-2">
                     <div className="flex items-center justify-between text-xs text-stone-500">
                       <span>
-                        Đơn hàng: <strong className="font-mono text-stone-800">{detailModal.order.orderCode}</strong>
+                        Đơn hàng:{' '}
+                        <strong className="font-mono text-stone-800">
+                          {detailModal.order.orderCode}
+                        </strong>
                       </span>
                       {detailModal.payment && (
                         <span className="inline-flex items-center gap-1 font-semibold text-emerald-700">
@@ -1096,7 +1108,9 @@ const StaffInvoicesPage = () => {
                             <strong>{item.productName}</strong> x{item.quantity}
                           </span>
                           <span className="font-semibold">
-                            {formatPrice(item.subtotal ?? Number(item.unitPrice) * item.quantity)}
+                            {formatPrice(
+                              item.subtotal ?? Number(item.unitPrice) * item.quantity
+                            )}
                           </span>
                         </div>
                       ))}
@@ -1138,6 +1152,31 @@ const StaffInvoicesPage = () => {
               </button>
             </div>
           </div>
+        </div>
+      )}
+
+      {/* Toast thông báo nổi */}
+      {feedback.message && (
+        <div
+          className={`fixed bottom-5 right-5 z-50 max-w-sm px-4 py-3 rounded-2xl border shadow-lg text-sm flex items-center gap-2.5 ${
+            feedback.type === 'error'
+              ? 'bg-red-50 border-red-200 text-red-800'
+              : 'bg-emerald-50 border-emerald-200 text-emerald-900'
+          }`}
+        >
+          {feedback.type === 'error' ? (
+            <AlertCircle className="w-4 h-4 text-red-600 shrink-0" />
+          ) : (
+            <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+          )}
+          <span className="font-medium leading-snug">{feedback.message}</span>
+          <button
+            type="button"
+            onClick={() => setFeedback({ type: '', message: '' })}
+            className="p-1 opacity-70 hover:opacity-100 cursor-pointer shrink-0"
+          >
+            <X className="w-4 h-4" />
+          </button>
         </div>
       )}
     </div>

@@ -9,6 +9,7 @@ const STAFF_LINKS = [
   { label: 'Sơ đồ bàn', path: '/staff/tables' },
   { label: 'Đặt bàn', path: '/staff/reservations' },
   { label: 'Hóa đơn', path: '/staff/invoices' },
+  { label: 'Thống kê', path: '/staff/reports' },
 ];
 
 const StaffNavbar = () => {
@@ -49,12 +50,16 @@ const StaffNavbar = () => {
           ))}
         </nav>
 
-        {/* Thông tin nhân viên & Đăng xuất */}
-        <div className="flex items-center gap-3">
-          <div className="hidden sm:flex items-center gap-1.5 text-sm font-medium text-stone-700">
+        {/* Thông tin cá nhân nhân viên & Đăng xuất */}
+        <div className="flex items-center gap-2 sm:gap-3">
+          <Link
+            to="/profile"
+            title="Thông tin cá nhân"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-sm font-medium text-stone-700 hover:bg-amber-50 hover:text-amber-800 transition-colors"
+          >
             <BadgeCheck className="w-4 h-4 text-amber-700 shrink-0" />
             <span className="max-w-[140px] truncate">{user?.fullName || user?.username}</span>
-          </div>
+          </Link>
 
           <button
             type="button"
@@ -89,6 +94,14 @@ const StaffNavbar = () => {
               {item.label}
             </NavLink>
           ))}
+          <Link
+            to="/profile"
+            onClick={() => setMobileOpen(false)}
+            className="mt-1 px-3.5 py-2 rounded-lg text-sm font-medium text-stone-700 hover:bg-amber-50 hover:text-amber-800 flex items-center gap-2"
+          >
+            <BadgeCheck className="w-4 h-4 text-amber-700 shrink-0" />
+            <span>Thông tin cá nhân ({user?.fullName || user?.username})</span>
+          </Link>
         </nav>
       )}
     </header>

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import {
   User,
   Mail,
@@ -36,7 +36,7 @@ const formatDateTime = (dateStr) => {
   });
 };
 
-const TABS = [
+const ALL_TABS = [
   {
     id: 'profile',
     label: 'Thông tin cá nhân',
@@ -54,8 +54,14 @@ const TABS = [
     label: 'Hóa đơn VAT & MST',
     description: 'Thông tin công ty xuất hóa đơn đỏ',
     icon: Building2,
+    customerOnly: true,
   },
 ];
+
+const normalizeRole = (rawRole) => {
+  if (!rawRole) return '';
+  return String(rawRole).trim().toUpperCase().replace(/^ROLE_/, '');
+};
 
 const ProfilePage = () => {
   const { user, token } = useAuth();
@@ -69,6 +75,30 @@ const ProfilePage = () => {
   const [accountInfo, setAccountInfo] = useState(null);
   const [userInfo, setUserInfo] = useState(null);
   const [avatarError, setAvatarError] = useState(false);
+
+  // Xác định vai trò: STAFF và ADMIN không hiển thị tab VAT
+  const effectiveRole = useMemo(() => {
+    const raw =
+      accountInfo?.roleName ||
+      user?.roleName ||
+      user?.role ||
+      claims?.roleName ||
+      claims?.role ||
+      '';
+    return normalizeRole(raw);
+  }, [accountInfo?.roleName, user?.roleName, user?.role, claims?.roleName, claims?.role]);
+
+  const isStaffOrAdmin = effectiveRole === 'STAFF' || effectiveRole === 'ADMIN';
+
+  const visibleTabs = useMemo(() => {
+    return ALL_TABS.filter((tab) => !(tab.customerOnly && isStaffOrAdmin));
+  }, [isStaffOrAdmin]);
+
+  useEffect(() => {
+    if (!visibleTabs.some((t) => t.id === activeTab)) {
+      setActiveTab('profile');
+    }
+  }, [visibleTabs, activeTab]);
 
   // Form 1: Thông tin cá nhân (UserController - bảng users)
   const [profileForm, setProfileForm] = useState({
@@ -126,7 +156,8 @@ const ProfilePage = () => {
         }
 
         const allUsers = Array.isArray(usersRes?.result) ? usersRes.result : [];
-        const matchedUser = allUsers.find((u) => Number(u.accountId) === Number(accountId)) || null;
+        const matchedUser =
+          allUsers.find((u) => Number(u.accountId) === Number(accountId)) || null;
 
         setUserInfo(matchedUser);
         if (matchedUser) {
@@ -414,7 +445,7 @@ const ProfilePage = () => {
         {/* Thanh Nav dọc */}
         <aside className="md:col-span-4 bg-white rounded-2xl border border-stone-200 shadow-sm p-3">
           <nav aria-label="Cài đặt hồ sơ" className="space-y-1.5">
-            {TABS.map((tab) => {
+            {visibleTabs.map((tab) => {
               const Icon = tab.icon;
               const isActive = activeTab === tab.id;
 
@@ -755,7 +786,9 @@ const ProfilePage = () => {
             </div>
           )}
 
-          {activeTab === 'tax' && <TaxProfileManager accountId={accountId} />}
+          {activeTab === 'tax' && !isStaffOrAdmin && (
+            <TaxProfileManager accountId={accountId} />
+          )}
         </section>
       </div>
     </div>

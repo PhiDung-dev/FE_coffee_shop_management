@@ -18,6 +18,16 @@ import StaffReservationsPage from '../page/staff/StaffReservationsPage';
 import MyOrdersPage from '../page/protected/MyOrderPage';
 import StaffOrdersPage from '../page/staff/StaffOrdersPage';
 import StaffInvoicesPage from '../page/staff/StaffInvocesPage';
+import VouchersPage from '../page/protected/VouchersPage';
+import StaffReportPage from '../page/staff/StaffReportPage';
+import AdminCategoriesPage from '../page/admin/AdminCategoriesPage';
+import AdminProductsPage from '../page/admin/AdminProductsPage';
+import AdminAreasPage from '../page/admin/AdminAreasPage';
+import AdminTablesPage from '../page/admin/AdminTablesPage';
+import AdminAccountsPage from '../page/admin/AdminAccountsPage';
+import AdminDashboardPage from '../page/admin/AdminDashBoardPage';
+import AdminInvoicesPage from '../page/admin/AdminInvoicesPage';
+import AdminOrdersPage from '../page/admin/AdminOrdersPage';
 
 const PlaceholderPage = ({ title, description = 'Trang đang được xây dựng.' }) => (
   <div className="bg-white p-6 rounded-2xl border border-stone-200 shadow-sm">
@@ -65,7 +75,7 @@ const AppRoutes = () => {
         {/* 1. Khu vực Công khai (Khách vãng lai & Customer) */}
         <Route path="/" element={<HomePage />} />
         <Route path="/menu" element={<MenuPage />} />
-        <Route path="/vouchers" element={<PlaceholderPage title="Ưu đãi & Voucher" />} />
+        <Route path="/vouchers" element={<VouchersPage />} />
 
         {/* 2. Khu vực Xác thực (Chỉ dành cho khách chưa đăng nhập) */}
         <Route element={<GuestRoute />}>
@@ -98,19 +108,22 @@ const AppRoutes = () => {
           <Route path="/staff/tables" element={<StaffTablesPage />} />
           <Route path="/staff/reservations" element={<StaffReservationsPage />} />
           <Route path="/staff/invoices" element={<StaffInvoicesPage />} />
+          <Route path="/staff/vouchers" element={<VouchersPage />} />
+          <Route path="/staff/reports" element={<StaffReportPage />} />
         </Route>
 
         {/* 6. Khu vực riêng của Admin */}
         <Route element={<ProtectedRoute allowedRoles={['ADMIN']} />}>
           <Route path="/admin" element={<Navigate to="/admin/products" replace />} />
-          <Route path="/admin/products" element={<PlaceholderPage title="Quản lý sản phẩm" />} />
-          <Route path="/admin/categories" element={<PlaceholderPage title="Quản lý danh mục" />} />
-          <Route path="/admin/areas" element={<PlaceholderPage title="Quản lý khu vực" />} />
-          <Route path="/admin/tables" element={<PlaceholderPage title="Quản lý bàn" />} />
-          <Route path="/admin/vouchers" element={<PlaceholderPage title="Quản lý Voucher" />} />
-          <Route path="/admin/accounts" element={<PlaceholderPage title="Quản lý tài khoản" />} />
-          <Route path="/admin/orders" element={<PlaceholderPage title="Quản lý đơn hàng" />} />
-          <Route path="/admin/invoices" element={<StaffInvoicesPage />} />
+          <Route path="/admin/products" element={<AdminProductsPage />} />
+          <Route path="/admin/categories" element={<AdminCategoriesPage />} />
+          <Route path="/admin/areas" element={<AdminAreasPage />} />
+          <Route path="/admin/tables" element={<AdminTablesPage />} />
+          <Route path="/admin/vouchers" element={<VouchersPage />} />
+          <Route path="/admin/accounts" element={<AdminAccountsPage />} />
+          <Route path="/admin/orders" element={<AdminOrdersPage />} />
+          <Route path="/admin/invoices" element={<AdminInvoicesPage />} />
+          <Route path="/admin/dashboard" element={<AdminDashboardPage />} />
         </Route>
 
         {/* 7. Trang báo lỗi hệ thống */}

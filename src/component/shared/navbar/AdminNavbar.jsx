@@ -12,6 +12,7 @@ const ADMIN_LINKS = [
   { label: 'Tài khoản', path: '/admin/accounts' },
   { label: 'Đơn hàng', path: '/admin/orders' },
   { label: 'Hóa đơn', path: '/admin/invoices' },
+  { label: 'Thống kê', path: '/admin/dashboard' },
 ];
 
 const AdminNavbar = () => {
@@ -52,12 +53,16 @@ const AdminNavbar = () => {
           ))}
         </nav>
 
-        {/* Thông tin Admin & Đăng xuất */}
-        <div className="flex items-center gap-3">
-          <div className="hidden sm:flex items-center gap-1.5 text-sm text-stone-300">
+        {/* Thông tin cá nhân Admin & Đăng xuất */}
+        <div className="flex items-center gap-2 sm:gap-3">
+          <Link
+            to="/profile"
+            title="Thông tin cá nhân"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-sm text-stone-300 hover:bg-stone-800 hover:text-white transition-colors"
+          >
             <ShieldCheck className="w-4 h-4 text-amber-400 shrink-0" />
             <span className="max-w-[140px] truncate">{user?.fullName || user?.username}</span>
-          </div>
+          </Link>
 
           <button
             type="button"
@@ -92,6 +97,14 @@ const AdminNavbar = () => {
               {item.label}
             </NavLink>
           ))}
+          <Link
+            to="/profile"
+            onClick={() => setMobileOpen(false)}
+            className="mt-1 px-3 py-2 rounded-lg text-sm text-stone-300 hover:bg-stone-800 hover:text-white flex items-center gap-2"
+          >
+            <ShieldCheck className="w-4 h-4 text-amber-400 shrink-0" />
+            <span>Thông tin cá nhân ({user?.fullName || user?.username})</span>
+          </Link>
         </nav>
       )}
     </header>
