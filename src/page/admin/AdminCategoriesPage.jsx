@@ -115,6 +115,16 @@ const AdminCategoriesPage = () => {
     fetchCategories({ isInitial: true });
   }, [fetchCategories]);
 
+  const activeCount = useMemo(
+    () => categories.filter((c) => Boolean(c.isActive)).length,
+    [categories]
+  );
+
+  const inactiveCount = useMemo(
+    () => categories.filter((c) => !c.isActive).length,
+    [categories]
+  );
+
   // Sắp xếp theo sortOrder tăng dần rồi lọc theo trạng thái & từ khóa
   const filteredCategories = useMemo(() => {
     const q = keyword.trim().toLowerCase();
@@ -312,42 +322,65 @@ const AdminCategoriesPage = () => {
 
   return (
     <div className="space-y-6 pb-16">
-      {/* Header */}
-      <div className="bg-white rounded-2xl border border-stone-200 p-6 shadow-2xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-extrabold text-stone-800">Quản lý Danh mục Thực đơn</h1>
-          <p className="text-sm text-stone-500 mt-0.5">
+      {/* Header gradient cam ấm với bố cục nút 2 tầng cân đối */}
+      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-stone-950 via-amber-950 to-orange-900 text-white p-6 sm:p-8 shadow-md border border-orange-500/25 flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+        <div className="absolute -right-10 -top-12 w-64 h-64 rounded-full bg-orange-500/20 blur-3xl pointer-events-none" />
+        <div className="absolute left-1/3 -bottom-16 w-56 h-56 rounded-full bg-amber-400/15 blur-3xl pointer-events-none" />
+
+        <div className="relative z-10 space-y-2 max-w-2xl">
+          <div className="inline-flex items-center gap-1.5 text-xs font-semibold text-amber-200 bg-orange-500/20 border border-orange-400/35 px-3 py-1 rounded-full">
+            <FolderKanban className="w-3.5 h-3.5 text-orange-300" />
+            <span>Phân nhóm thực đơn & Thứ tự hiển thị</span>
+          </div>
+          <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight">
+            Quản lý Danh mục Thực đơn
+          </h1>
+          <p className="text-sm text-amber-100/85">
             Phân nhóm đồ uống, sắp xếp thứ tự hiển thị và kiểm soát trạng thái trên trang Menu
           </p>
         </div>
 
-        <div className="flex flex-wrap items-center gap-2.5">
-          <Link
-            to="/admin/products"
-            className="inline-flex items-center gap-1.5 px-3.5 py-2.5 rounded-xl border border-stone-300 bg-white hover:bg-stone-50 text-sm font-semibold text-stone-700"
-          >
-            <Coffee className="w-4 h-4 text-amber-700" />
-            <span>Quản lý sản phẩm</span>
-          </Link>
+        {/* Cụm nút thao tác & thống kê sắp xếp 2 hàng gọn gàng */}
+        <div className="relative z-10 flex flex-col items-start lg:items-end gap-2.5 shrink-0">
+          <div className="flex flex-wrap items-center gap-2.5">
+            <Link
+              to="/admin/products"
+              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-2xl border border-orange-400/30 bg-orange-950/75 hover:bg-orange-900/85 text-xs sm:text-sm font-semibold text-amber-100 transition-colors"
+            >
+              <Coffee className="w-4 h-4 text-orange-300" />
+              <span>Quản lý sản phẩm</span>
+            </Link>
 
-          <button
-            type="button"
-            disabled={refreshing}
-            onClick={() => fetchCategories({ isInitial: false })}
-            className="inline-flex items-center gap-1.5 px-3.5 py-2.5 rounded-xl border border-stone-300 bg-white hover:bg-stone-50 text-sm font-semibold text-stone-700 cursor-pointer"
-          >
-            <RefreshCw className={`w-4 h-4 ${refreshing ? 'animate-spin' : ''}`} />
-            <span>Làm mới</span>
-          </button>
+            <button
+              type="button"
+              onClick={handleOpenCreate}
+              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-2xl bg-amber-500 hover:bg-amber-400 text-stone-950 text-xs sm:text-sm font-extrabold shadow-sm transition-colors cursor-pointer"
+            >
+              <Plus className="w-4 h-4 stroke-[2.5]" />
+              <span>Thêm danh mục</span>
+            </button>
+          </div>
 
-          <button
-            type="button"
-            onClick={handleOpenCreate}
-            className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-amber-700 hover:bg-amber-800 text-white text-sm font-semibold shadow-2xs transition-colors cursor-pointer"
-          >
-            <Plus className="w-4 h-4" />
-            <span>Thêm danh mục</span>
-          </button>
+          <div className="flex flex-wrap items-center gap-2.5">
+            <div className="inline-flex items-center gap-2.5 px-3.5 py-2 rounded-2xl bg-orange-950/60 border border-orange-400/20 text-xs">
+              <span className="text-amber-200/75">Hiển thị:</span>
+              <span className="font-extrabold text-amber-300">
+                {activeCount} / {categories.length} danh mục
+              </span>
+            </div>
+
+            <button
+              type="button"
+              disabled={refreshing}
+              onClick={() => fetchCategories({ isInitial: false })}
+              className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-2xl border border-orange-400/25 bg-orange-950/60 hover:bg-orange-900/80 text-xs font-semibold text-amber-100 transition-colors cursor-pointer"
+            >
+              <RefreshCw
+                className={`w-3.5 h-3.5 text-orange-300 ${refreshing ? 'animate-spin' : ''}`}
+              />
+              <span>Làm mới</span>
+            </button>
+          </div>
         </div>
       </div>
 
@@ -356,14 +389,8 @@ const AdminCategoriesPage = () => {
         <div className="flex flex-wrap items-center gap-2">
           {[
             { key: 'ALL', label: `Tất cả (${categories.length})` },
-            {
-              key: 'ACTIVE',
-              label: `Đang hiển thị (${categories.filter((c) => c.isActive).length})`,
-            },
-            {
-              key: 'INACTIVE',
-              label: `Đang ẩn (${categories.filter((c) => !c.isActive).length})`,
-            },
+            { key: 'ACTIVE', label: `Đang hiển thị (${activeCount})` },
+            { key: 'INACTIVE', label: `Đang ẩn (${inactiveCount})` },
           ].map((tab) => (
             <button
               key={tab.key}
@@ -371,7 +398,7 @@ const AdminCategoriesPage = () => {
               onClick={() => setStatusFilter(tab.key)}
               className={`px-3.5 py-2 rounded-xl text-xs font-semibold transition-colors cursor-pointer ${
                 statusFilter === tab.key
-                  ? 'bg-stone-800 text-white'
+                  ? 'bg-orange-600 text-white'
                   : 'bg-stone-100 text-stone-600 hover:bg-stone-200'
               }`}
             >
@@ -386,7 +413,7 @@ const AdminCategoriesPage = () => {
             value={keyword}
             onChange={(e) => setKeyword(e.target.value)}
             placeholder="Tìm tên danh mục hoặc slug..."
-            className="w-full pl-9 pr-3 py-2 rounded-xl border border-stone-300 text-sm focus:outline-none focus:ring-2 focus:ring-amber-600"
+            className="w-full pl-9 pr-3 py-2 rounded-xl border border-stone-300 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500"
           />
           <Search className="w-4 h-4 text-stone-400 absolute left-3 top-1/2 -translate-y-1/2" />
         </div>
@@ -428,10 +455,10 @@ const AdminCategoriesPage = () => {
                   const isBusy = busyCategoryId === cat.id;
 
                   return (
-                    <tr key={cat.id} className="hover:bg-stone-50/80 transition-colors">
+                    <tr key={cat.id} className="hover:bg-orange-50/30 transition-colors">
                       <td className="py-3.5 px-4">
-                        <div className="inline-flex items-center gap-1.5 bg-stone-100 rounded-lg px-2 py-1">
-                          <span className="font-mono text-xs font-extrabold text-stone-800 w-5 text-center">
+                        <div className="inline-flex items-center gap-1.5 bg-orange-50/70 border border-orange-200/60 rounded-lg px-2 py-1">
+                          <span className="font-mono text-xs font-extrabold text-orange-900 w-5 text-center">
                             {cat.sortOrder ?? '—'}
                           </span>
                           <div className="flex flex-col">
@@ -440,7 +467,7 @@ const AdminCategoriesPage = () => {
                               disabled={isBusy}
                               onClick={() => handleStepSortOrder(cat, -1)}
                               title="Giảm số thứ tự (lên trước)"
-                              className="text-stone-500 hover:text-amber-800 disabled:opacity-40 cursor-pointer"
+                              className="text-stone-500 hover:text-orange-700 disabled:opacity-40 cursor-pointer"
                             >
                               <ArrowUp className="w-3 h-3" />
                             </button>
@@ -449,7 +476,7 @@ const AdminCategoriesPage = () => {
                               disabled={isBusy}
                               onClick={() => handleStepSortOrder(cat, 1)}
                               title="Tăng số thứ tự (xuống sau)"
-                              className="text-stone-500 hover:text-amber-800 disabled:opacity-40 cursor-pointer"
+                              className="text-stone-500 hover:text-orange-700 disabled:opacity-40 cursor-pointer"
                             >
                               <ArrowDown className="w-3 h-3" />
                             </button>
@@ -459,7 +486,7 @@ const AdminCategoriesPage = () => {
 
                       <td className="py-3.5 px-4">
                         <div className="flex items-center gap-3 min-w-[200px]">
-                          <div className="w-11 h-11 rounded-xl bg-amber-50 border border-stone-200 overflow-hidden flex items-center justify-center shrink-0">
+                          <div className="w-11 h-11 rounded-xl bg-orange-50 border border-orange-200/70 overflow-hidden flex items-center justify-center shrink-0">
                             {hasValidImg ? (
                               <img
                                 src={cat.imageUrl}
@@ -470,7 +497,7 @@ const AdminCategoriesPage = () => {
                                 className="w-full h-full object-cover"
                               />
                             ) : (
-                              <FolderKanban className="w-5 h-5 text-amber-800" />
+                              <FolderKanban className="w-5 h-5 text-orange-700" />
                             )}
                           </div>
                           <div>
@@ -587,7 +614,7 @@ const AdminCategoriesPage = () => {
                   value={modalState.form.name}
                   onChange={(e) => handleNameChange(e.target.value)}
                   placeholder="Trà trái cây nhiệt đới..."
-                  className="w-full px-3.5 py-2 rounded-xl border border-stone-300 text-sm focus:outline-none focus:ring-2 focus:ring-amber-600"
+                  className="w-full px-3.5 py-2 rounded-xl border border-stone-300 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500"
                 />
               </div>
 
@@ -675,7 +702,7 @@ const AdminCategoriesPage = () => {
                       form: { ...prev.form, isActive: e.target.checked },
                     }))
                   }
-                  className="rounded border-stone-300 text-amber-700 focus:ring-amber-600"
+                  className="rounded border-stone-300 text-orange-600 focus:ring-orange-500"
                 />
                 <span>Hiển thị danh mục này cho khách hàng</span>
               </label>
@@ -691,7 +718,7 @@ const AdminCategoriesPage = () => {
                 <button
                   type="submit"
                   disabled={modalState.saving}
-                  className="px-5 py-2 rounded-xl bg-amber-700 hover:bg-amber-800 disabled:bg-stone-300 text-white text-xs font-semibold cursor-pointer"
+                  className="px-5 py-2 rounded-xl bg-orange-600 hover:bg-orange-700 disabled:bg-stone-300 text-white text-xs font-semibold cursor-pointer"
                 >
                   {modalState.saving ? 'Đang lưu...' : 'Lưu danh mục'}
                 </button>

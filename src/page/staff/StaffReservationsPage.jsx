@@ -12,6 +12,7 @@ import {
   RefreshCw,
   Search,
   AlertCircle,
+  CalendarClock,
 } from 'lucide-react';
 import reservationService from '../../service/reservationService';
 import tableService from '../../service/tableService';
@@ -24,11 +25,23 @@ const STATUS_TABS = [
   { key: 'CANCELLED', label: 'Đã hủy' },
 ];
 
-const STATUS_BADGE = {
-  PENDING: 'bg-amber-50 text-amber-800 border-amber-200',
-  CONFIRMED: 'bg-emerald-50 text-emerald-700 border-emerald-200',
-  COMPLETED: 'bg-sky-50 text-sky-700 border-sky-200',
-  CANCELLED: 'bg-stone-100 text-stone-600 border-stone-200',
+const STATUS_META = {
+  PENDING: {
+    label: 'Chờ xác nhận',
+    badgeClass: 'bg-amber-50 text-amber-800 border-amber-200',
+  },
+  CONFIRMED: {
+    label: 'Đã xác nhận',
+    badgeClass: 'bg-emerald-50 text-emerald-700 border-emerald-200',
+  },
+  COMPLETED: {
+    label: 'Đã nhận bàn',
+    badgeClass: 'bg-sky-50 text-sky-700 border-sky-200',
+  },
+  CANCELLED: {
+    label: 'Đã hủy',
+    badgeClass: 'bg-stone-100 text-stone-600 border-stone-200',
+  },
 };
 
 const formatDateTime = (iso) => {
@@ -61,7 +74,8 @@ const StaffReservationsPage = () => {
       const res = await reservationService.getAllReservations();
       const list = Array.isArray(res?.result) ? res.result : [];
       const sorted = [...list].sort(
-        (a, b) => new Date(b.reservationTime || b.createdAt) - new Date(a.reservationTime || a.createdAt)
+        (a, b) =>
+          new Date(b.reservationTime || b.createdAt) - new Date(a.reservationTime || a.createdAt)
       );
       setReservations(sorted);
     } catch (err) {
@@ -74,6 +88,21 @@ const StaffReservationsPage = () => {
   useEffect(() => {
     fetchReservations();
   }, [fetchReservations]);
+
+  const statusCounts = useMemo(() => {
+    const counts = {
+      ALL: reservations.length,
+      PENDING: 0,
+      CONFIRMED: 0,
+      COMPLETED: 0,
+      CANCELLED: 0,
+    };
+    reservations.forEach((r) => {
+      const key = (r.status || 'PENDING').toUpperCase();
+      if (counts[key] !== undefined) counts[key] += 1;
+    });
+    return counts;
+  }, [reservations]);
 
   const filteredReservations = useMemo(() => {
     return reservations.filter((r) => {
@@ -147,23 +176,41 @@ const StaffReservationsPage = () => {
   };
 
   return (
-    <div className="space-y-6 pb-10">
-      <div className="bg-white rounded-2xl border border-stone-200 p-6 shadow-2xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-extrabold text-stone-800">Quản lý lịch đặt bàn</h1>
-          <p className="text-sm text-stone-500 mt-0.5">
+    <div className="space-y-6 pb-12">
+      {/* Header nổi bật đồng bộ màu sắc với các trang khác */}
+      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-stone-950 via-stone-900 to-amber-950 text-white p-6 sm:p-8 shadow-md border border-stone-800/80 flex flex-col lg:flex-row lg:items-center justify-between gap-5">
+        <div className="absolute -right-12 -top-12 w-56 h-56 rounded-full bg-amber-500/15 blur-3xl pointer-events-none" />
+
+        <div className="relative z-10 space-y-1.5">
+          <div className="inline-flex items-center gap-1.5 text-xs font-semibold text-amber-300 bg-amber-500/15 border border-amber-400/25 px-3 py-1 rounded-full">
+            <CalendarClock className="w-3.5 h-3.5 text-amber-400" />
+            <span>Điều phối đặt bàn & Tiếp đón khách</span>
+          </div>
+          <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight">
+            Quản lý lịch đặt bàn
+          </h1>
+          <p className="text-sm text-stone-300 max-w-2xl">
             Xác nhận giữ chỗ, hủy lịch hoặc check-in khách vào bàn để order trực tiếp
           </p>
         </div>
 
-        <button
-          type="button"
-          onClick={fetchReservations}
-          className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl border border-stone-300 bg-white hover:bg-stone-50 text-sm font-semibold text-stone-700 self-start sm:self-center cursor-pointer"
-        >
-          <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
-          <span>Làm mới</span>
-        </button>
+        <div className="relative z-10 flex flex-wrap items-center gap-3 self-start lg:self-center">
+          <div className="px-4 py-2 rounded-2xl bg-stone-900/85 border border-stone-700/80 text-xs">
+            <span className="text-stone-400 block">Chờ xác nhận</span>
+            <span className="text-sm font-extrabold text-amber-300">
+              {statusCounts.PENDING} / {statusCounts.ALL} lịch
+            </span>
+          </div>
+
+          <button
+            type="button"
+            onClick={fetchReservations}
+            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-amber-500 hover:bg-amber-400 text-stone-950 text-xs sm:text-sm font-bold shadow-sm transition-colors cursor-pointer"
+          >
+            <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
+            <span>Làm mới</span>
+          </button>
+        </div>
       </div>
 
       {error && (
@@ -181,13 +228,22 @@ const StaffReservationsPage = () => {
               key={tab.key}
               type="button"
               onClick={() => setStatusFilter(tab.key)}
-              className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold cursor-pointer ${
+              className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-colors cursor-pointer inline-flex items-center gap-1.5 ${
                 statusFilter === tab.key
                   ? 'bg-amber-700 text-white'
                   : 'bg-stone-100 text-stone-700 hover:bg-stone-200'
               }`}
             >
-              {tab.label}
+              <span>{tab.label}</span>
+              <span
+                className={`px-1.5 py-0.5 rounded-full text-[11px] ${
+                  statusFilter === tab.key
+                    ? 'bg-amber-800 text-amber-100'
+                    : 'bg-white text-stone-600'
+                }`}
+              >
+                {statusCounts[tab.key] ?? 0}
+              </span>
             </button>
           ))}
         </div>
@@ -208,7 +264,10 @@ const StaffReservationsPage = () => {
       {loading ? (
         <div className="space-y-3">
           {[...Array(4)].map((_, i) => (
-            <div key={i} className="h-28 rounded-2xl bg-white border border-stone-200 animate-pulse" />
+            <div
+              key={i}
+              className="h-28 rounded-2xl bg-white border border-stone-200 animate-pulse"
+            />
           ))}
         </div>
       ) : filteredReservations.length === 0 ? (
@@ -219,12 +278,13 @@ const StaffReservationsPage = () => {
         <div className="space-y-3.5">
           {filteredReservations.map((resv) => {
             const statusKey = (resv.status || 'PENDING').toUpperCase();
+            const statusMeta = STATUS_META[statusKey] || STATUS_META.PENDING;
             const isBusy = processingId === resv.id;
 
             return (
               <div
                 key={resv.id}
-                className="bg-white rounded-2xl border border-stone-200 p-5 shadow-2xs flex flex-col lg:flex-row lg:items-center justify-between gap-4"
+                className="bg-white rounded-2xl border border-stone-200 hover:border-amber-300 transition-colors p-5 shadow-2xs flex flex-col lg:flex-row lg:items-center justify-between gap-4"
               >
                 <div className="space-y-2">
                   <div className="flex flex-wrap items-center gap-2.5">
@@ -234,11 +294,9 @@ const StaffReservationsPage = () => {
                       <span>{formatDateTime(resv.reservationTime)}</span>
                     </span>
                     <span
-                      className={`px-2.5 py-0.5 rounded-full text-xs font-semibold border ${
-                        STATUS_BADGE[statusKey] || STATUS_BADGE.PENDING
-                      }`}
+                      className={`px-2.5 py-0.5 rounded-full text-xs font-semibold border ${statusMeta.badgeClass}`}
                     >
-                      {statusKey}
+                      {statusMeta.label}
                     </span>
                   </div>
 
@@ -272,7 +330,11 @@ const StaffReservationsPage = () => {
                     )}
                   </div>
 
-                  {resv.note && <p className="text-xs text-stone-500">Ghi chú: {resv.note}</p>}
+                  {resv.note && (
+                    <p className="text-xs text-stone-600 bg-stone-50 border border-stone-200/70 rounded-xl px-3 py-1.5 inline-block">
+                      Ghi chú: {resv.note}
+                    </p>
+                  )}
                 </div>
 
                 {/* Hành động */}
@@ -282,7 +344,7 @@ const StaffReservationsPage = () => {
                       type="button"
                       disabled={isBusy}
                       onClick={() => handleConfirm(resv)}
-                      className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold cursor-pointer"
+                      className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 disabled:opacity-60 text-white text-xs font-semibold transition-colors cursor-pointer"
                     >
                       <Check className="w-3.5 h-3.5" />
                       <span>Xác nhận giữ bàn</span>
@@ -295,7 +357,7 @@ const StaffReservationsPage = () => {
                         type="button"
                         disabled={isBusy}
                         onClick={() => handleCheckInAndOrder(resv)}
-                        className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-amber-700 hover:bg-amber-800 text-white text-xs font-semibold cursor-pointer"
+                        className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-amber-700 hover:bg-amber-800 disabled:opacity-60 text-white text-xs font-semibold transition-colors cursor-pointer"
                       >
                         <UtensilsCrossed className="w-3.5 h-3.5" />
                         <span>Nhận bàn & Order</span>
@@ -305,7 +367,7 @@ const StaffReservationsPage = () => {
                         type="button"
                         disabled={isBusy}
                         onClick={() => handleCancel(resv)}
-                        className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl border border-red-200 text-red-600 hover:bg-red-50 text-xs font-semibold cursor-pointer"
+                        className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl border border-red-200 text-red-600 hover:bg-red-50 disabled:opacity-60 text-xs font-semibold transition-colors cursor-pointer"
                       >
                         <XCircle className="w-3.5 h-3.5" />
                         <span>Hủy</span>

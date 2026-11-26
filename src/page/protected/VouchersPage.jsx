@@ -479,7 +479,7 @@ const VouchersPage = () => {
   };
 
   return (
-    <div className="max-w-6xl mx-auto space-y-6 pb-16">
+    <div className="w-full mx-auto space-y-6 pb-16">
       {/* Banner Header */}
       <div className="bg-gradient-to-r from-amber-800 via-amber-700 to-stone-800 rounded-2xl p-6 sm:p-8 text-white shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-5">
         <div className="space-y-1.5">

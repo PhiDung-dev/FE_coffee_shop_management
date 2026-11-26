@@ -44,7 +44,7 @@ const SafeImage = ({ src, alt, className, fallbackClassName, iconClassName = 'w-
       <div
         className={
           fallbackClassName ||
-          'w-full h-full flex items-center justify-center bg-gradient-to-br from-amber-50 to-stone-100 text-amber-800/40'
+          'w-full h-full flex items-center justify-center bg-gradient-to-br from-amber-50 via-stone-100 to-amber-100/60 text-amber-800/45'
         }
       >
         <Coffee className={iconClassName} />
@@ -303,18 +303,20 @@ const MenuPage = () => {
     Boolean(keyword.trim()) || selectedCategoryId !== null || onlyAvailable;
 
   return (
-    <div className="space-y-6 pb-12">
+    <div className="space-y-6 pb-16">
       {/* 1. Đầu trang Thực đơn */}
-      <div className="bg-white rounded-2xl border border-stone-200 p-6 shadow-2xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <div className="inline-flex items-center gap-1.5 text-xs font-semibold text-amber-800 bg-amber-50 px-2.5 py-1 rounded-full mb-2">
-            <Coffee className="w-3.5 h-3.5" />
+      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-stone-950 via-stone-900 to-amber-950 text-white p-6 sm:p-8 shadow-md border border-stone-800/80 flex flex-col sm:flex-row sm:items-center justify-between gap-5">
+        <div className="absolute -right-12 -top-12 w-56 h-56 rounded-full bg-amber-500/15 blur-3xl pointer-events-none" />
+
+        <div className="relative z-10 space-y-1.5">
+          <div className="inline-flex items-center gap-1.5 text-xs font-semibold text-amber-300 bg-amber-500/15 border border-amber-400/25 px-3 py-1 rounded-full">
+            <Coffee className="w-3.5 h-3.5 text-amber-400" />
             <span>Thực đơn CoffeeHouse</span>
           </div>
-          <h1 className="text-2xl sm:text-3xl font-extrabold text-stone-800 tracking-tight">
+          <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight">
             Khám phá đồ uống & bánh ngọt
           </h1>
-          <p className="text-sm text-stone-500 mt-1">
+          <p className="text-sm text-stone-300 max-w-2xl">
             Lọc nhanh theo nhóm món, tùy chỉnh ghi chú pha chế và lưu danh sách món yêu thích
           </p>
         </div>
@@ -322,23 +324,23 @@ const MenuPage = () => {
         <button
           type="button"
           onClick={() => setIsCartOpen(true)}
-          className="inline-flex items-center justify-center gap-2.5 px-4 py-3 rounded-xl bg-stone-800 hover:bg-stone-900 text-white text-sm font-semibold transition-colors shrink-0 cursor-pointer"
+          className="relative z-10 inline-flex items-center justify-center gap-2.5 px-5 py-3 rounded-2xl bg-amber-500 hover:bg-amber-400 text-stone-950 text-sm font-bold transition-all shadow-md shrink-0 cursor-pointer"
         >
-          <ShoppingBag className="w-4 h-4 text-amber-400" />
+          <ShoppingBag className="w-4 h-4 stroke-[2.2]" />
           <span>Khay chọn món</span>
-          <span className="px-2 py-0.5 rounded-full text-xs font-bold bg-amber-600 text-white">
+          <span className="px-2 py-0.5 rounded-full text-xs font-extrabold bg-stone-950 text-amber-300">
             {totalCartCount}
           </span>
         </button>
       </div>
 
       {/* 2. Thanh lọc Danh mục (GET /api/categories/active) */}
-      <div className="flex items-center gap-2 overflow-x-auto pb-1">
+      <div className="flex items-center gap-2.5 overflow-x-auto pb-1">
         {loadingCategories ? (
           [...Array(5)].map((_, idx) => (
             <div
               key={idx}
-              className="h-10 w-28 rounded-xl bg-stone-200 animate-pulse shrink-0"
+              className="h-10 w-28 rounded-2xl bg-stone-200 animate-pulse shrink-0"
             />
           ))
         ) : (
@@ -346,10 +348,10 @@ const MenuPage = () => {
             <button
               type="button"
               onClick={() => handleSelectCategory(null)}
-              className={`px-4 py-2 rounded-xl text-sm font-semibold transition-all shrink-0 cursor-pointer ${
+              className={`px-4 py-2.5 rounded-2xl text-sm font-semibold transition-all shrink-0 cursor-pointer ${
                 selectedCategoryId === null
-                  ? 'bg-amber-700 text-white shadow-2xs'
-                  : 'bg-white text-stone-700 border border-stone-200 hover:border-amber-400 hover:text-amber-800'
+                  ? 'bg-amber-700 text-white shadow-sm'
+                  : 'bg-white text-stone-700 border border-stone-200/90 hover:border-amber-400 hover:text-amber-800 shadow-2xs'
               }`}
             >
               Tất cả ({pageInfo.totalElements})
@@ -362,14 +364,14 @@ const MenuPage = () => {
                   key={cat.id}
                   type="button"
                   onClick={() => handleSelectCategory(cat.id)}
-                  className={`inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold transition-all shrink-0 cursor-pointer ${
+                  className={`inline-flex items-center gap-2 px-4 py-2.5 rounded-2xl text-sm font-semibold transition-all shrink-0 cursor-pointer ${
                     isSelected
-                      ? 'bg-amber-700 text-white shadow-2xs'
-                      : 'bg-white text-stone-700 border border-stone-200 hover:border-amber-400 hover:text-amber-800'
+                      ? 'bg-amber-700 text-white shadow-sm'
+                      : 'bg-white text-stone-700 border border-stone-200/90 hover:border-amber-400 hover:text-amber-800 shadow-2xs'
                   }`}
                 >
                   {cat.imageUrl && (
-                    <span className="w-5 h-5 rounded-full overflow-hidden shrink-0">
+                    <span className="w-5 h-5 rounded-full overflow-hidden shrink-0 border border-white/40">
                       <SafeImage
                         src={cat.imageUrl}
                         alt={cat.name}
@@ -387,7 +389,7 @@ const MenuPage = () => {
       </div>
 
       {/* 3. Thanh tìm kiếm, lọc trạng thái & sắp xếp */}
-      <div className="bg-white p-4 rounded-2xl border border-stone-200 shadow-2xs flex flex-col lg:flex-row lg:items-center justify-between gap-3">
+      <div className="bg-white p-4 rounded-2xl border border-stone-200/90 shadow-2xs flex flex-col lg:flex-row lg:items-center justify-between gap-3">
         <form onSubmit={handleSearchSubmit} className="flex-1 flex items-center gap-2">
           <div className="relative flex-1 max-w-md">
             <input
@@ -395,14 +397,14 @@ const MenuPage = () => {
               value={keywordInput}
               onChange={(e) => setKeywordInput(e.target.value)}
               placeholder="Tìm tên đồ uống, bánh ngọt..."
-              className="w-full pl-10 pr-4 py-2 rounded-xl border border-stone-300 text-sm focus:outline-none focus:ring-2 focus:ring-amber-600 focus:border-transparent"
+              className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-stone-300 text-sm focus:outline-none focus:ring-2 focus:ring-amber-600 focus:border-transparent"
             />
             <Search className="w-4 h-4 text-stone-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
           </div>
 
           <button
             type="submit"
-            className="px-4 py-2 rounded-xl bg-amber-700 hover:bg-amber-800 text-white text-sm font-medium transition-colors cursor-pointer"
+            className="px-4 py-2.5 rounded-xl bg-amber-700 hover:bg-amber-800 text-white text-sm font-semibold transition-colors cursor-pointer"
           >
             Tìm
           </button>
@@ -411,7 +413,7 @@ const MenuPage = () => {
             <button
               type="button"
               onClick={handleResetFilters}
-              className="inline-flex items-center gap-1 px-3 py-2 rounded-xl text-xs font-medium text-stone-600 hover:bg-stone-100 transition-colors cursor-pointer"
+              className="inline-flex items-center gap-1 px-3 py-2.5 rounded-xl text-xs font-semibold text-stone-600 hover:bg-stone-100 transition-colors cursor-pointer"
             >
               <RotateCcw className="w-3.5 h-3.5" />
               <span>Đặt lại</span>
@@ -420,7 +422,7 @@ const MenuPage = () => {
         </form>
 
         <div className="flex flex-wrap items-center gap-4">
-          <label className="inline-flex items-center gap-2 text-sm text-stone-700 cursor-pointer select-none">
+          <label className="inline-flex items-center gap-2 text-sm font-medium text-stone-700 cursor-pointer select-none">
             <input
               type="checkbox"
               checked={onlyAvailable}
@@ -441,7 +443,7 @@ const MenuPage = () => {
                 setSortOption(e.target.value);
                 setPage(0);
               }}
-              className="px-3 py-2 rounded-xl border border-stone-300 text-sm text-stone-700 bg-white focus:outline-none focus:ring-2 focus:ring-amber-600"
+              className="px-3 py-2 rounded-xl border border-stone-300 text-sm text-stone-700 bg-white focus:outline-none focus:ring-2 focus:ring-amber-600 cursor-pointer"
             >
               <option value="createdAt,desc">Mới nhất</option>
               <option value="basePrice,asc">Giá thấp đến cao</option>
@@ -468,7 +470,7 @@ const MenuPage = () => {
               key={idx}
               className="bg-white rounded-2xl border border-stone-200 overflow-hidden animate-pulse"
             >
-              <div className="h-48 bg-stone-200" />
+              <div className="h-52 bg-stone-200" />
               <div className="p-4 space-y-2.5">
                 <div className="h-3 bg-stone-200 rounded w-1/3" />
                 <div className="h-4 bg-stone-200 rounded w-3/4" />
@@ -479,9 +481,9 @@ const MenuPage = () => {
           ))}
         </div>
       ) : products.length === 0 ? (
-        <div className="bg-white rounded-2xl border border-stone-200 py-16 px-4 text-center">
+        <div className="bg-white rounded-2xl border border-stone-200/90 py-16 px-4 text-center shadow-2xs">
           <Coffee className="w-12 h-12 text-stone-300 mx-auto mb-3" />
-          <h3 className="text-base font-semibold text-stone-800">Không tìm thấy món phù hợp</h3>
+          <h3 className="text-base font-bold text-stone-800">Không tìm thấy món phù hợp</h3>
           <p className="text-sm text-stone-500 mt-1">
             Thử đổi từ khóa tìm kiếm hoặc đặt lại bộ lọc để xem toàn bộ thực đơn.
           </p>
@@ -489,7 +491,7 @@ const MenuPage = () => {
             <button
               type="button"
               onClick={handleResetFilters}
-              className="mt-4 px-4 py-2 rounded-xl bg-amber-700 hover:bg-amber-800 text-white text-sm font-medium transition-colors cursor-pointer"
+              className="mt-4 px-4 py-2 rounded-xl bg-amber-700 hover:bg-amber-800 text-white text-sm font-semibold transition-colors cursor-pointer"
             >
               Xem tất cả món
             </button>
@@ -504,23 +506,25 @@ const MenuPage = () => {
               <div
                 key={product.id}
                 onClick={() => openProductModal(product)}
-                className={`group bg-white rounded-2xl border border-stone-200 overflow-hidden shadow-2xs hover:shadow-md transition-all flex flex-col cursor-pointer ${
-                  available ? 'hover:border-amber-300' : 'opacity-80'
+                className={`group bg-white rounded-2xl border border-stone-200/90 overflow-hidden shadow-2xs hover:shadow-lg transition-all flex flex-col cursor-pointer ${
+                  available ? 'hover:border-amber-300' : 'opacity-75'
                 }`}
               >
                 {/* Ảnh sản phẩm */}
-                <div className="relative h-48 bg-stone-100 overflow-hidden">
+                <div className="relative h-52 bg-stone-100 overflow-hidden">
                   <SafeImage
                     src={product.imageUrl}
                     alt={product.name}
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                   />
 
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent pointer-events-none" />
+
                   <span
-                    className={`absolute top-3 right-3 px-2.5 py-1 rounded-full text-[11px] font-semibold shadow-2xs ${
+                    className={`absolute top-3 right-3 px-2.5 py-1 rounded-full text-[11px] font-bold shadow-2xs ${
                       available
-                        ? 'bg-emerald-600 text-white'
-                        : 'bg-stone-800/85 text-stone-200'
+                        ? 'bg-emerald-600/95 text-white'
+                        : 'bg-stone-900/85 text-stone-200'
                     }`}
                   >
                     {available ? 'Còn hàng' : 'Tạm hết'}
@@ -530,7 +534,7 @@ const MenuPage = () => {
                 {/* Nội dung thẻ */}
                 <div className="p-4 flex-1 flex flex-col">
                   {product.categoryName && (
-                    <span className="text-[11px] font-semibold uppercase tracking-wider text-amber-700 mb-1">
+                    <span className="text-[11px] font-bold uppercase tracking-wider text-amber-700 mb-1">
                       {product.categoryName}
                     </span>
                   )}
@@ -539,7 +543,7 @@ const MenuPage = () => {
                     {product.name}
                   </h3>
 
-                  <p className="text-xs text-stone-500 mt-1 line-clamp-2 flex-1">
+                  <p className="text-xs text-stone-500 mt-1 line-clamp-2 flex-1 leading-relaxed">
                     {product.description || 'Thức uống pha chế tươi mới mỗi ngày tại CoffeeHouse.'}
                   </p>
 
@@ -560,7 +564,7 @@ const MenuPage = () => {
                           );
                         }}
                         title="Hỏi AI về món này"
-                        className="p-2 rounded-lg bg-amber-50 hover:bg-amber-100 text-amber-800 transition-colors cursor-pointer"
+                        className="p-2 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-200/70 transition-colors cursor-pointer"
                       >
                         <MessageSquare className="w-4 h-4" />
                       </button>
@@ -572,7 +576,7 @@ const MenuPage = () => {
                           e.stopPropagation();
                           addToCart(product, 1, '');
                         }}
-                        className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-amber-700 hover:bg-amber-800 disabled:bg-stone-300 text-white text-xs font-semibold transition-colors cursor-pointer disabled:cursor-not-allowed"
+                        className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl bg-amber-700 hover:bg-amber-800 disabled:bg-stone-300 text-white text-xs font-bold transition-colors cursor-pointer disabled:cursor-not-allowed shadow-2xs"
                       >
                         <Plus className="w-3.5 h-3.5" />
                         <span>Chọn</span>
@@ -621,9 +625,9 @@ const MenuPage = () => {
 
       {/* Thanh nổi tóm tắt dưới đáy khi có món trong khay */}
       {totalCartCount > 0 && !isCartOpen && (
-        <div className="fixed bottom-5 left-1/2 -translate-x-1/2 z-30 w-[calc(100%-2rem)] max-w-xl bg-stone-900 text-white rounded-2xl shadow-xl border border-stone-700 px-4 py-3 flex items-center justify-between gap-4">
+        <div className="fixed bottom-5 left-1/2 -translate-x-1/2 z-30 w-[calc(100%-2rem)] max-w-xl bg-stone-950/95 backdrop-blur-md text-white rounded-2xl shadow-2xl border border-stone-700/90 px-4 py-3 flex items-center justify-between gap-4">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-amber-600 text-white flex items-center justify-center font-bold text-sm shrink-0">
+            <div className="w-10 h-10 rounded-xl bg-amber-500 text-stone-950 flex items-center justify-center font-extrabold text-sm shrink-0">
               {totalCartCount}
             </div>
             <div>
@@ -637,7 +641,7 @@ const MenuPage = () => {
           <button
             type="button"
             onClick={() => setIsCartOpen(true)}
-            className="px-4 py-2 rounded-xl bg-amber-600 hover:bg-amber-500 text-white text-sm font-semibold transition-colors cursor-pointer"
+            className="px-4 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-stone-950 text-sm font-bold transition-colors cursor-pointer"
           >
             Xem khay món
           </button>
@@ -648,13 +652,13 @@ const MenuPage = () => {
       {selectedProduct && (
         <div
           onClick={() => setSelectedProduct(null)}
-          className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4"
+          className="fixed inset-0 z-50 bg-black/55 backdrop-blur-[2px] flex items-center justify-center p-4"
         >
           <div
             onClick={(e) => e.stopPropagation()}
             className="bg-white rounded-2xl max-w-lg w-full overflow-hidden shadow-2xl border border-stone-200"
           >
-            <div className="relative h-56 bg-stone-100">
+            <div className="relative h-60 bg-stone-100">
               <SafeImage
                 src={selectedProduct.imageUrl}
                 alt={selectedProduct.name}
@@ -665,7 +669,7 @@ const MenuPage = () => {
               <button
                 type="button"
                 onClick={() => setSelectedProduct(null)}
-                className="absolute top-3 right-3 p-2 rounded-full bg-black/50 text-white hover:bg-black/70 transition-colors cursor-pointer"
+                className="absolute top-3 right-3 p-2 rounded-full bg-black/55 text-white hover:bg-black/75 transition-colors cursor-pointer"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -675,7 +679,7 @@ const MenuPage = () => {
               <div className="flex items-start justify-between gap-4">
                 <div>
                   {selectedProduct.categoryName && (
-                    <span className="text-xs font-semibold uppercase tracking-wider text-amber-700">
+                    <span className="text-xs font-bold uppercase tracking-wider text-amber-700">
                       {selectedProduct.categoryName}
                     </span>
                   )}
@@ -703,7 +707,7 @@ const MenuPage = () => {
 
               {/* Ghi chú pha chế */}
               <div className="space-y-2 pt-1">
-                <label className="block text-xs font-semibold uppercase tracking-wider text-stone-500">
+                <label className="block text-xs font-bold uppercase tracking-wider text-stone-500">
                   Ghi chú pha chế (tùy chọn)
                 </label>
                 <div className="flex flex-wrap gap-1.5">
@@ -725,7 +729,7 @@ const MenuPage = () => {
                                 : noteItem
                           )
                         }
-                        className={`px-2.5 py-1 rounded-lg text-xs font-medium border transition-colors cursor-pointer ${
+                        className={`px-2.5 py-1 rounded-lg text-xs font-semibold border transition-colors cursor-pointer ${
                           active
                             ? 'bg-amber-50 border-amber-400 text-amber-900'
                             : 'bg-stone-50 border-stone-200 text-stone-600 hover:border-stone-300'
@@ -742,7 +746,7 @@ const MenuPage = () => {
                   value={modalNote}
                   onChange={(e) => setModalNote(e.target.value)}
                   placeholder="Nhập thêm yêu cầu riêng (ví dụ: 50% đường, mang về...)"
-                  className="w-full px-3.5 py-2 rounded-xl border border-stone-300 text-sm focus:outline-none focus:ring-2 focus:ring-amber-600 focus:border-transparent"
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-stone-300 text-sm focus:outline-none focus:ring-2 focus:ring-amber-600 focus:border-transparent"
                 />
               </div>
 
@@ -773,7 +777,7 @@ const MenuPage = () => {
                     addToCart(selectedProduct, modalQty, modalNote);
                     setSelectedProduct(null);
                   }}
-                  className="flex-1 py-2.5 px-4 rounded-xl bg-amber-700 hover:bg-amber-800 disabled:bg-stone-300 text-white text-sm font-semibold transition-colors cursor-pointer disabled:cursor-not-allowed"
+                  className="flex-1 py-2.5 px-4 rounded-xl bg-amber-700 hover:bg-amber-800 disabled:bg-stone-300 text-white text-sm font-bold transition-colors cursor-pointer disabled:cursor-not-allowed shadow-2xs"
                 >
                   {selectedProduct.isAvailable
                     ? `Thêm vào khay • ${formatPrice(
@@ -791,7 +795,7 @@ const MenuPage = () => {
       {isCartOpen && (
         <div
           onClick={() => setIsCartOpen(false)}
-          className="fixed inset-0 z-50 bg-black/50 flex justify-end"
+          className="fixed inset-0 z-50 bg-black/55 backdrop-blur-[2px] flex justify-end"
         >
           <div
             onClick={(e) => e.stopPropagation()}
@@ -799,7 +803,7 @@ const MenuPage = () => {
           >
             <div className="p-5 border-b border-stone-200 flex items-center justify-between">
               <div className="flex items-center gap-2.5">
-                <div className="w-9 h-9 rounded-xl bg-amber-50 text-amber-800 flex items-center justify-center">
+                <div className="w-9 h-9 rounded-xl bg-amber-50 text-amber-800 flex items-center justify-center border border-amber-200/70">
                   <ShoppingBag className="w-5 h-5" />
                 </div>
                 <div>
@@ -830,7 +834,7 @@ const MenuPage = () => {
                 cartItems.map((item) => (
                   <div
                     key={item.key}
-                    className="p-3.5 rounded-xl border border-stone-200 bg-stone-50/60 flex items-start gap-3"
+                    className="p-3.5 rounded-2xl border border-stone-200/90 bg-stone-50/70 flex items-start gap-3"
                   >
                     <div className="w-14 h-14 rounded-xl overflow-hidden bg-stone-100 shrink-0 border border-stone-200">
                       <SafeImage
@@ -848,7 +852,7 @@ const MenuPage = () => {
                           Ghi chú: {item.note}
                         </p>
                       )}
-                      <p className="text-xs font-semibold text-stone-600 mt-1">
+                      <p className="text-xs font-bold text-stone-700 mt-1">
                         {formatPrice(item.basePrice * item.quantity)}
                       </p>
 
@@ -897,63 +901,54 @@ const MenuPage = () => {
                   </span>
                 </div>
 
-                <div className="p-5 border-t border-stone-200 bg-stone-50 space-y-2.5">
-                <div className="flex items-center justify-between">
-                    <span className="text-sm text-stone-600">Tạm tính ({totalCartCount} món)</span>
-                    <span className="text-lg font-extrabold text-amber-800">
-                    {formatPrice(totalCartAmount)}
-                    </span>
-                </div>
-
                 {/* 2 nút Đặt chính: Đặt bàn & Đặt giao hàng (nhập địa chỉ) */}
                 <div className="grid grid-cols-2 gap-2.5 pt-1">
-                    <button
+                  <button
                     type="button"
                     onClick={() => {
-                        setIsCartOpen(false);
-                        navigate(isAuthenticated ? '/reservations' : '/login', {
+                      setIsCartOpen(false);
+                      navigate(isAuthenticated ? '/reservations' : '/login', {
                         state: { preselectedItems: cartItems, redirectTo: '/reservations' },
-                        });
+                      });
                     }}
-                    className="py-2.5 px-3 rounded-xl border border-amber-700 text-amber-800 hover:bg-amber-50 text-xs font-semibold transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
-                    >
+                    className="py-2.5 px-3 rounded-xl border border-amber-700 text-amber-800 hover:bg-amber-50 text-xs font-bold transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
+                  >
                     <CalendarCheck className="w-4 h-4" />
                     <span>Đặt bàn</span>
-                    </button>
+                  </button>
 
-                    <button
+                  <button
                     type="button"
                     onClick={() => {
-                        setIsCartOpen(false);
-                        navigate(isAuthenticated ? '/checkout' : '/login', {
+                      setIsCartOpen(false);
+                      navigate(isAuthenticated ? '/checkout' : '/login', {
                         state: { preselectedItems: cartItems, redirectTo: '/checkout' },
-                        });
+                      });
                     }}
-                    className="py-2.5 px-3 rounded-xl bg-amber-700 hover:bg-amber-800 text-white text-xs font-semibold transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
-                    >
+                    className="py-2.5 px-3 rounded-xl bg-amber-700 hover:bg-amber-800 text-white text-xs font-bold transition-colors flex items-center justify-center gap-1.5 cursor-pointer shadow-2xs"
+                  >
                     <ShoppingBag className="w-4 h-4" />
                     <span>Đặt giao hàng</span>
-                    </button>
+                  </button>
                 </div>
 
                 <div className="flex items-center justify-between pt-1">
-                    <button
+                  <button
                     type="button"
                     onClick={handleAskAiAboutCart}
                     className="inline-flex items-center gap-1 text-xs font-semibold text-amber-800 hover:text-amber-900 cursor-pointer"
-                    >
+                  >
                     <Sparkles className="w-3.5 h-3.5" />
                     <span>Nhờ AI tư vấn khay món</span>
-                    </button>
+                  </button>
 
-                    <button
+                  <button
                     type="button"
                     onClick={clearCart}
                     className="text-xs font-medium text-stone-500 hover:text-red-600 transition-colors cursor-pointer"
-                    >
+                  >
                     Xóa khay món
-                    </button>
-                </div>
+                  </button>
                 </div>
               </div>
             )}

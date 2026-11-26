@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import {
   ShoppingBag,
@@ -21,6 +21,7 @@ import {
   X,
   Wallet,
   Sparkles,
+  BookmarkPlus,
 } from 'lucide-react';
 import orderService from '../../service/orderService';
 import paymentService from '../../service/paymentService';
@@ -82,6 +83,21 @@ const calculateVoucherDiscount = (voucher, subtotal) => {
   return Math.min(val, subtotal);
 };
 
+const isVoucherCatalogUsable = (v, now = new Date()) => {
+  if (!v) return false;
+  if (v.isActive === false) return false;
+  if (v.startDate && new Date(v.startDate) > now) return false;
+  if (v.endDate && new Date(v.endDate) < now) return false;
+  if (
+    v.usageLimit != null &&
+    v.usedCount != null &&
+    Number(v.usedCount) >= Number(v.usageLimit)
+  ) {
+    return false;
+  }
+  return true;
+};
+
 const loadStoredCart = () => {
   try {
     const raw = localStorage.getItem(CART_STORAGE_KEY);
@@ -136,13 +152,17 @@ const CheckoutPage = () => {
 
   const [paymentMethod, setPaymentMethod] = useState('VNPAY');
 
+  // Voucher đã lưu trong ví của user (UserVoucherController -> /api/user-vouchers/account/{accountId})
   const [walletVouchers, setWalletVouchers] = useState([]);
-  const [activeVouchers, setActiveVouchers] = useState([]);
+  // Voucher khả dụng từ hệ thống (VoucherController -> /api/vouchers/active) để lưu vào ví
+  const [catalogVouchers, setCatalogVouchers] = useState([]);
   const [loadingVouchers, setLoadingVouchers] = useState(true);
+  const [savingVoucherId, setSavingVoucherId] = useState(null);
 
   const [voucherCodeInput, setVoucherCodeInput] = useState('');
   const [searchingCode, setSearchingCode] = useState(false);
   const [voucherFeedback, setVoucherFeedback] = useState({ type: '', message: '' });
+  // Chỉ nhận voucher từ walletVouchers (có userVoucherId)
   const [appliedVoucher, setAppliedVoucher] = useState(null);
   const [isVoucherModalOpen, setIsVoucherModalOpen] = useState(false);
 
@@ -160,20 +180,70 @@ const CheckoutPage = () => {
     }
   }, [items, confirmedOrder]);
 
+  const loadVoucherData = useCallback(async () => {
+    setLoadingVouchers(true);
+    const now = new Date();
+
+    const tasks = [voucherService.getActiveVouchers().catch(() => null)];
+    if (accountId) {
+      tasks.push(userVoucherService.getUserVouchersByAccountId(accountId).catch(() => null));
+    }
+
+    const [activeVoucherRes, userVoucherRes] = await Promise.all(tasks);
+
+    let usableWallet = [];
+    if (accountId) {
+      const rawUserVouchers = Array.isArray(userVoucherRes?.result) ? userVoucherRes.result : [];
+      usableWallet = rawUserVouchers
+        .filter((uv) => {
+          if (uv.isUsed) return false;
+          if (uv.voucherEndDate && new Date(uv.voucherEndDate) < now) return false;
+          return true;
+        })
+        .map((uv) => ({
+          voucherId: uv.voucherId,
+          userVoucherId: uv.id,
+          code: uv.voucherCode,
+          title: uv.voucherTitle,
+          discountType: uv.discountType,
+          discountValue: uv.discountValue,
+          maxDiscountAmount: uv.maxDiscountAmount,
+          minOrderValue: uv.minOrderValue,
+          endDate: uv.voucherEndDate,
+        }));
+      setWalletVouchers(usableWallet);
+    } else {
+      setWalletVouchers([]);
+    }
+
+    const rawActive = Array.isArray(activeVoucherRes?.result) ? activeVoucherRes.result : [];
+    const usableCatalog = rawActive
+      .filter((v) => isVoucherCatalogUsable(v, now))
+      .map((v) => ({
+        voucherId: v.id,
+        code: v.code,
+        title: v.title,
+        discountType: v.discountType,
+        discountValue: v.discountValue,
+        maxDiscountAmount: v.maxDiscountAmount,
+        minOrderValue: v.minOrderValue,
+        endDate: v.endDate,
+      }));
+
+    setCatalogVouchers(usableCatalog);
+    setLoadingVouchers(false);
+    return usableWallet;
+  }, [accountId]);
+
   useEffect(() => {
     const fetchInitialData = async () => {
-      setLoadingVouchers(true);
-      const now = new Date();
-
-      const tasks = [voucherService.getActiveVouchers().catch(() => null)];
-
+      const tasks = [loadVoucherData()];
       if (accountId) {
         tasks.push(accountService.getAccountById(accountId).catch(() => null));
         tasks.push(userService.getAllUsers().catch(() => null));
-        tasks.push(userVoucherService.getUserVouchersByAccountId(accountId).catch(() => null));
       }
 
-      const [activeVoucherRes, accRes, usersRes, userVoucherRes] = await Promise.all(tasks);
+      const [, accRes, usersRes] = await Promise.all(tasks);
 
       if (accountId) {
         const acc = accRes?.result;
@@ -185,77 +255,25 @@ const CheckoutPage = () => {
           recipientName: prev.recipientName || matchedUser?.fullName || '',
           recipientPhone: prev.recipientPhone || acc?.phone || '',
         }));
-
-        const rawUserVouchers = Array.isArray(userVoucherRes?.result) ? userVoucherRes.result : [];
-        const usableWallet = rawUserVouchers
-          .filter((uv) => {
-            if (uv.isUsed) return false;
-            if (uv.voucherEndDate && new Date(uv.voucherEndDate) < now) return false;
-            return true;
-          })
-          .map((uv) => ({
-            voucherId: uv.voucherId,
-            userVoucherId: uv.id,
-            code: uv.voucherCode,
-            title: uv.voucherTitle,
-            discountType: uv.discountType,
-            discountValue: uv.discountValue,
-            maxDiscountAmount: uv.maxDiscountAmount,
-            minOrderValue: uv.minOrderValue,
-            endDate: uv.voucherEndDate,
-            source: 'WALLET',
-          }));
-
-        setWalletVouchers(usableWallet);
       }
-
-      const rawActive = Array.isArray(activeVoucherRes?.result) ? activeVoucherRes.result : [];
-      const usableActive = rawActive
-        .filter((v) => {
-          if (v.isActive === false) return false;
-          if (v.startDate && new Date(v.startDate) > now) return false;
-          if (v.endDate && new Date(v.endDate) < now) return false;
-          if (
-            v.usageLimit != null &&
-            v.usedCount != null &&
-            Number(v.usedCount) >= Number(v.usageLimit)
-          ) {
-            return false;
-          }
-          return true;
-        })
-        .map((v) => ({
-          voucherId: v.id,
-          userVoucherId: null,
-          code: v.code,
-          title: v.title,
-          discountType: v.discountType,
-          discountValue: v.discountValue,
-          maxDiscountAmount: v.maxDiscountAmount,
-          minOrderValue: v.minOrderValue,
-          endDate: v.endDate,
-          source: 'PUBLIC',
-        }));
-
-      setActiveVouchers(usableActive);
-      setLoadingVouchers(false);
     };
 
     fetchInitialData();
-  }, [accountId]);
+  }, [accountId, loadVoucherData]);
 
   const subtotal = useMemo(
     () => items.reduce((sum, item) => sum + (Number(item.basePrice) || 0) * item.quantity, 0),
     [items]
   );
 
-  const nonDuplicatePublicVouchers = useMemo(() => {
+  // Danh sách voucher khả dụng chưa có trong ví của user (cần lưu trước mới dùng được)
+  const unsavedCatalogVouchers = useMemo(() => {
     const walletVoucherIds = new Set(walletVouchers.map((w) => Number(w.voucherId)));
-    return activeVouchers.filter((v) => !walletVoucherIds.has(Number(v.voucherId)));
-  }, [walletVouchers, activeVouchers]);
+    return catalogVouchers.filter((v) => !walletVoucherIds.has(Number(v.voucherId)));
+  }, [walletVouchers, catalogVouchers]);
 
   const isAppliedVoucherEligible = useMemo(() => {
-    if (!appliedVoucher) return false;
+    if (!appliedVoucher || !appliedVoucher.userVoucherId) return false;
     return subtotal >= Number(appliedVoucher.minOrderValue ?? 0);
   }, [appliedVoucher, subtotal]);
 
@@ -266,21 +284,75 @@ const CheckoutPage = () => {
 
   const estimatedFinalAmount = Math.max(0, subtotal - estimatedDiscount);
 
-  const handleSelectVoucher = (voucherObj) => {
-    const minOrder = Number(voucherObj.minOrderValue ?? 0);
-    if (subtotal < minOrder) {
+  // Lưu voucher -> gọi POST /api/user-vouchers để tạo UserVoucher
+  const handleSaveVoucherToWallet = async (catalogVoucher) => {
+    if (!accountId) {
       setVoucherFeedback({
         type: 'error',
-        message: `Mã ${voucherObj.code} yêu cầu đơn tối thiểu ${formatPrice(minOrder)}.`,
+        message: 'Vui lòng đăng nhập để lưu voucher vào ví.',
       });
       return;
     }
 
-    setAppliedVoucher(voucherObj);
-    setVoucherCodeInput(voucherObj.code || '');
+    setSavingVoucherId(catalogVoucher.voucherId);
+    setVoucherFeedback({ type: '', message: '' });
+
+    try {
+      const res = await userVoucherService.createUserVoucher({
+        accountId: Number(accountId),
+        voucherId: Number(catalogVoucher.voucherId),
+      });
+      const createdUv = res?.result;
+      const updatedWallet = await loadVoucherData();
+
+      const savedItem =
+        updatedWallet.find(
+          (w) =>
+            Number(w.userVoucherId) === Number(createdUv?.id) ||
+            Number(w.voucherId) === Number(catalogVoucher.voucherId)
+        ) || null;
+
+      setVoucherFeedback({
+        type: 'success',
+        message: `Đã lưu mã ${catalogVoucher.code} vào ví. Bạn có thể bấm áp dụng ngay.`,
+      });
+
+      return savedItem;
+    } catch (err) {
+      setVoucherFeedback({
+        type: 'error',
+        message: err?.message || 'Không thể lưu voucher vào ví.',
+      });
+      return null;
+    } finally {
+      setSavingVoucherId(null);
+    }
+  };
+
+  // Chỉ áp dụng voucher đã có trong ví (user_vouchers)
+  const handleApplyWalletVoucher = (walletItem) => {
+    if (!walletItem?.userVoucherId) {
+      setVoucherFeedback({
+        type: 'error',
+        message: 'Vui lòng lưu mã vào ví trước khi áp dụng.',
+      });
+      return;
+    }
+
+    const minOrder = Number(walletItem.minOrderValue ?? 0);
+    if (subtotal < minOrder) {
+      setVoucherFeedback({
+        type: 'error',
+        message: `Mã ${walletItem.code} yêu cầu đơn tối thiểu ${formatPrice(minOrder)}.`,
+      });
+      return;
+    }
+
+    setAppliedVoucher(walletItem);
+    setVoucherCodeInput(walletItem.code || '');
     setVoucherFeedback({
       type: 'success',
-      message: `Đã áp dụng mã ${voucherObj.code} (${formatDiscountSummary(voucherObj)}).`,
+      message: `Đã áp dụng mã ${walletItem.code} từ ví (${formatDiscountSummary(walletItem)}).`,
     });
     setIsVoucherModalOpen(false);
   };
@@ -291,6 +363,7 @@ const CheckoutPage = () => {
     setVoucherFeedback({ type: '', message: '' });
   };
 
+  // Nhập mã: chỉ áp dụng nếu mã đã nằm trong ví user_vouchers; nếu chưa lưu thì báo cần lưu trước
   const handleApplyCodeSubmit = async (e) => {
     e.preventDefault();
     const rawCode = voucherCodeInput.trim();
@@ -299,10 +372,18 @@ const CheckoutPage = () => {
       return;
     }
 
+    if (!accountId) {
+      setVoucherFeedback({
+        type: 'error',
+        message: 'Vui lòng đăng nhập để sử dụng mã giảm giá trong ví.',
+      });
+      return;
+    }
+
     const upperCode = rawCode.toUpperCase();
     const inWallet = walletVouchers.find((v) => (v.code || '').toUpperCase() === upperCode);
     if (inWallet) {
-      handleSelectVoucher(inWallet);
+      handleApplyWalletVoucher(inWallet);
       return;
     }
 
@@ -317,44 +398,22 @@ const CheckoutPage = () => {
         return;
       }
 
-      const now = new Date();
-      if (v.isActive === false) {
-        setVoucherFeedback({ type: 'error', message: 'Mã giảm giá này hiện đã tạm ngưng.' });
-        return;
-      }
-      if (v.startDate && new Date(v.startDate) > now) {
-        setVoucherFeedback({ type: 'error', message: 'Mã giảm giá chưa đến thời gian áp dụng.' });
-        return;
-      }
-      if (v.endDate && new Date(v.endDate) < now) {
-        setVoucherFeedback({ type: 'error', message: 'Mã giảm giá đã hết hạn sử dụng.' });
-        return;
-      }
-      if (
-        v.usageLimit != null &&
-        v.usedCount != null &&
-        Number(v.usedCount) >= Number(v.usageLimit)
-      ) {
-        setVoucherFeedback({ type: 'error', message: 'Mã giảm giá đã hết lượt sử dụng.' });
+      if (!isVoucherCatalogUsable(v, new Date())) {
+        setVoucherFeedback({
+          type: 'error',
+          message: 'Mã giảm giá đã hết hạn, tạm ngưng hoặc hết lượt sử dụng.',
+        });
         return;
       }
 
-      handleSelectVoucher({
-        voucherId: v.id,
-        userVoucherId: null,
-        code: v.code,
-        title: v.title,
-        discountType: v.discountType,
-        discountValue: v.discountValue,
-        maxDiscountAmount: v.maxDiscountAmount,
-        minOrderValue: v.minOrderValue,
-        endDate: v.endDate,
-        source: 'CODE',
+      setVoucherFeedback({
+        type: 'error',
+        message: `Mã ${v.code} chưa có trong ví của bạn. Mở "Chọn từ ví" để lưu mã trước khi áp dụng.`,
       });
     } catch (err) {
       setVoucherFeedback({
         type: 'error',
-        message: err?.message || 'Mã giảm giá không hợp lệ hoặc không tồn tại.',
+        message: err?.message || 'Mã giảm giá không hợp lệ hoặc chưa có trong ví của bạn.',
       });
     } finally {
       setSearchingCode(false);
@@ -413,15 +472,17 @@ const CheckoutPage = () => {
     setError('');
 
     try {
-      const validVoucherId =
-        appliedVoucher && isAppliedVoucherEligible ? Number(appliedVoucher.voucherId) : null;
+      const validWalletVoucher =
+        appliedVoucher && appliedVoucher.userVoucherId && isAppliedVoucherEligible
+          ? appliedVoucher
+          : null;
 
-      // 1. Tạo đơn hàng mới (POST /api/orders)
+      // 1. Tạo đơn hàng mới (POST /api/orders) với voucher đã có trong ví
       const orderPayload = {
         orderType: 'DELIVERY',
         status: 'PENDING',
         customerAccountId: accountId,
-        appliedVoucherId: validVoucherId,
+        appliedVoucherId: validWalletVoucher ? Number(validWalletVoucher.voucherId) : null,
         items: items.map((item) => ({
           productId: Number(item.productId),
           quantity: Number(item.quantity),
@@ -436,14 +497,14 @@ const CheckoutPage = () => {
         throw new Error('Không nhận được thông tin đơn hàng từ máy chủ.');
       }
 
-      // 2. Đánh dấu đã dùng voucher trong ví nếu có
-      if (appliedVoucher?.userVoucherId && validVoucherId) {
+      // 2. Đánh dấu đã sử dụng bản ghi UserVoucher (PUT /api/user-vouchers/{id})
+      if (validWalletVoucher?.userVoucherId) {
         const localNowIso = new Date(Date.now() - new Date().getTimezoneOffset() * 60000)
           .toISOString()
           .slice(0, 19);
 
         await userVoucherService
-          .updateUserVoucher(appliedVoucher.userVoucherId, {
+          .updateUserVoucher(validWalletVoucher.userVoucherId, {
             isUsed: true,
             usedAt: localNowIso,
           })
@@ -585,10 +646,8 @@ const CheckoutPage = () => {
     );
   }
 
-  const totalAvailableVouchersCount = walletVouchers.length + nonDuplicatePublicVouchers.length;
-
   return (
-    <div className="max-w-6xl mx-auto space-y-6 pb-12">
+    <div className="w-full mx-auto space-y-6 pb-12">
       <div>
         <Link
           to="/menu"
@@ -873,12 +932,12 @@ const CheckoutPage = () => {
               ))}
             </div>
 
-            {/* Khối Voucher */}
+            {/* Khối Voucher: chỉ áp dụng từ ví user_vouchers */}
             <div className="pt-3 border-t border-stone-100 space-y-2.5">
               <div className="flex items-center justify-between">
                 <span className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-stone-600">
                   <Ticket className="w-3.5 h-3.5 text-amber-700" />
-                  <span>Ưu đãi & Mã giảm giá</span>
+                  <span>Ví voucher của bạn</span>
                 </span>
 
                 <button
@@ -888,7 +947,7 @@ const CheckoutPage = () => {
                 >
                   {loadingVouchers
                     ? 'Đang tải...'
-                    : `Chọn từ ví (${totalAvailableVouchersCount})`}
+                    : `Ví (${walletVouchers.length}) • Lưu thêm (${unsavedCatalogVouchers.length})`}
                 </button>
               </div>
 
@@ -901,7 +960,7 @@ const CheckoutPage = () => {
                       setVoucherCodeInput(e.target.value.toUpperCase());
                       if (voucherFeedback.message) setVoucherFeedback({ type: '', message: '' });
                     }}
-                    placeholder="Nhập mã voucher..."
+                    placeholder="Nhập mã đã lưu trong ví..."
                     className="w-full pl-9 pr-3 py-2 rounded-xl border border-stone-300 text-xs font-mono uppercase focus:outline-none focus:ring-2 focus:ring-amber-600 focus:border-transparent"
                   />
                   <Tag className="w-3.5 h-3.5 text-stone-400 absolute left-3 top-1/2 -translate-y-1/2" />
@@ -929,11 +988,9 @@ const CheckoutPage = () => {
                       <span className="px-2 py-0.5 rounded bg-white border border-current/20 font-mono text-xs font-bold">
                         {appliedVoucher.code}
                       </span>
-                      {appliedVoucher.source === 'WALLET' && (
-                        <span className="text-[11px] font-semibold px-1.5 py-0.5 rounded bg-amber-200/70 text-amber-900">
-                          Từ ví của bạn
-                        </span>
-                      )}
+                      <span className="text-[11px] font-semibold px-1.5 py-0.5 rounded bg-amber-200/70 text-amber-900">
+                        UserVoucher #{appliedVoucher.userVoucherId}
+                      </span>
                     </div>
                     <p className="text-xs font-medium mt-1 truncate">
                       {appliedVoucher.title || formatDiscountSummary(appliedVoucher)}
@@ -996,7 +1053,6 @@ const CheckoutPage = () => {
               </div>
             </div>
 
-            {/* Hiển thị lỗi ngay trên nút để người dùng thấy tức thì */}
             {error && (
               <div className="p-3 rounded-xl bg-red-50 border border-red-200 text-red-700 text-xs flex items-start gap-2">
                 <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
@@ -1025,7 +1081,7 @@ const CheckoutPage = () => {
         </div>
       )}
 
-      {/* Modal chọn Voucher */}
+      {/* Modal quản lý Ví UserVoucher & Lưu mã mới */}
       {isVoucherModalOpen && (
         <div
           onClick={() => setIsVoucherModalOpen(false)}
@@ -1038,7 +1094,7 @@ const CheckoutPage = () => {
             <div className="p-5 border-b border-stone-200 flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <Ticket className="w-5 h-5 text-amber-800" />
-                <h3 className="text-base font-bold text-stone-800">Chọn mã ưu đãi</h3>
+                <h3 className="text-base font-bold text-stone-800">Ví voucher & Kho ưu đãi</h3>
               </div>
               <button
                 type="button"
@@ -1050,22 +1106,25 @@ const CheckoutPage = () => {
             </div>
 
             <div className="p-5 overflow-y-auto space-y-5">
+              {/* 1. Ví UserVoucher: chỉ những mã đã lưu mới dùng được */}
               <div className="space-y-2.5">
                 <h4 className="text-xs font-bold uppercase tracking-wider text-stone-500 flex items-center gap-1.5">
                   <Wallet className="w-3.5 h-3.5 text-amber-700" />
-                  <span>Ví voucher của bạn ({walletVouchers.length})</span>
+                  <span>Đã lưu trong ví ({walletVouchers.length})</span>
                 </h4>
 
                 {walletVouchers.length === 0 ? (
                   <p className="text-xs text-stone-400 bg-stone-50 border border-stone-200/80 rounded-xl p-3.5">
-                    Bạn chưa có mã giảm giá nào khả dụng trong ví.
+                    Chưa có voucher nào trong ví. Hãy lưu mã ở danh sách bên dưới trước khi áp
+                    dụng.
                   </p>
                 ) : (
                   walletVouchers.map((v) => {
                     const minOrder = Number(v.minOrderValue ?? 0);
                     const eligible = subtotal >= minOrder;
                     const isSelected =
-                      appliedVoucher && Number(appliedVoucher.voucherId) === Number(v.voucherId);
+                      appliedVoucher &&
+                      Number(appliedVoucher.userVoucherId) === Number(v.userVoucherId);
 
                     return (
                       <div
@@ -1104,10 +1163,10 @@ const CheckoutPage = () => {
                         <button
                           type="button"
                           disabled={!eligible}
-                          onClick={() => handleSelectVoucher(v)}
+                          onClick={() => handleApplyWalletVoucher(v)}
                           className="px-3.5 py-2 rounded-xl bg-amber-700 hover:bg-amber-800 disabled:bg-stone-300 text-white text-xs font-semibold shrink-0 cursor-pointer disabled:cursor-not-allowed"
                         >
-                          {isSelected ? 'Đang dùng' : 'Dùng ngay'}
+                          {isSelected ? 'Đang dùng' : 'Áp dụng'}
                         </button>
                       </div>
                     );
@@ -1115,33 +1174,26 @@ const CheckoutPage = () => {
                 )}
               </div>
 
+              {/* 2. Voucher chưa lưu: gọi POST /api/user-vouchers để lưu vào ví */}
               <div className="space-y-2.5">
                 <h4 className="text-xs font-bold uppercase tracking-wider text-stone-500 flex items-center gap-1.5">
                   <Sparkles className="w-3.5 h-3.5 text-amber-700" />
-                  <span>Ưu đãi công khai khác ({nonDuplicatePublicVouchers.length})</span>
+                  <span>Voucher chưa lưu ({unsavedCatalogVouchers.length})</span>
                 </h4>
 
-                {nonDuplicatePublicVouchers.length === 0 ? (
+                {unsavedCatalogVouchers.length === 0 ? (
                   <p className="text-xs text-stone-400 bg-stone-50 border border-stone-200/80 rounded-xl p-3.5">
-                    Không có mã ưu đãi công khai nào khác.
+                    Tất cả voucher khả dụng đã được lưu vào ví của bạn.
                   </p>
                 ) : (
-                  nonDuplicatePublicVouchers.map((v) => {
+                  unsavedCatalogVouchers.map((v) => {
                     const minOrder = Number(v.minOrderValue ?? 0);
-                    const eligible = subtotal >= minOrder;
-                    const isSelected =
-                      appliedVoucher && Number(appliedVoucher.voucherId) === Number(v.voucherId);
+                    const isSaving = Number(savingVoucherId) === Number(v.voucherId);
 
                     return (
                       <div
-                        key={`public-${v.voucherId}`}
-                        className={`p-3.5 rounded-xl border transition-all flex items-center justify-between gap-3 ${
-                          isSelected
-                            ? 'border-amber-600 bg-amber-50/70'
-                            : eligible
-                              ? 'border-stone-200 hover:border-amber-400 bg-white'
-                              : 'border-stone-200 bg-stone-50 opacity-70'
-                        }`}
+                        key={`catalog-${v.voucherId}`}
+                        className="p-3.5 rounded-xl border border-stone-200 bg-stone-50/40 flex items-center justify-between gap-3"
                       >
                         <div className="min-w-0 space-y-1">
                           <div className="flex items-center gap-2">
@@ -1159,20 +1211,16 @@ const CheckoutPage = () => {
                             Đơn tối thiểu {formatPrice(minOrder)}
                             {v.endDate ? ` • HSD: ${formatDateShort(v.endDate)}` : ''}
                           </p>
-                          {!eligible && (
-                            <p className="text-[11px] font-medium text-red-600">
-                              Mua thêm {formatPrice(minOrder - subtotal)} để áp dụng
-                            </p>
-                          )}
                         </div>
 
                         <button
                           type="button"
-                          disabled={!eligible}
-                          onClick={() => handleSelectVoucher(v)}
-                          className="px-3.5 py-2 rounded-xl bg-stone-800 hover:bg-stone-900 disabled:bg-stone-300 text-white text-xs font-semibold shrink-0 cursor-pointer disabled:cursor-not-allowed"
+                          disabled={isSaving || !accountId}
+                          onClick={() => handleSaveVoucherToWallet(v)}
+                          className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-stone-800 hover:bg-stone-900 disabled:bg-stone-300 text-white text-xs font-semibold shrink-0 cursor-pointer disabled:cursor-not-allowed"
                         >
-                          {isSelected ? 'Đang dùng' : 'Áp dụng'}
+                          <BookmarkPlus className="w-3.5 h-3.5" />
+                          <span>{isSaving ? 'Đang lưu...' : 'Lưu mã'}</span>
                         </button>
                       </div>
                     );

@@ -15,6 +15,7 @@ import {
   ArrowUpDown,
   LayoutGrid,
   Clock,
+  RotateCcw,
 } from 'lucide-react';
 import areaService from '../../service/areaService';
 
@@ -214,7 +215,8 @@ const AdminAreasPage = () => {
     } catch (err) {
       showToast(
         'error',
-        err?.message || 'Không thể xóa khu vực này (vui lòng chuyển hoặc xóa các bàn trong khu vực trước).'
+        err?.message ||
+          'Không thể xóa khu vực này (vui lòng chuyển hoặc xóa các bàn trong khu vực trước).'
       );
     } finally {
       setDeletingId(null);
@@ -228,68 +230,93 @@ const AdminAreasPage = () => {
     setPage(0);
   };
 
+  const handleResetSearch = () => {
+    setKeywordInput('');
+    setKeyword('');
+    setPage(0);
+  };
+
   return (
     <div className="space-y-6 pb-16">
-      {/* Header */}
-      <div className="bg-white rounded-2xl border border-stone-200 p-6 shadow-2xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-extrabold text-stone-800">
+      {/* Header gradient cam ấm với bố cục nút 2 tầng cân đối */}
+      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-stone-950 via-amber-950 to-orange-900 text-white p-6 sm:p-8 shadow-md border border-orange-500/25 flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+        <div className="absolute -right-10 -top-12 w-64 h-64 rounded-full bg-orange-500/20 blur-3xl pointer-events-none" />
+        <div className="absolute left-1/3 -bottom-16 w-56 h-56 rounded-full bg-amber-400/15 blur-3xl pointer-events-none" />
+
+        <div className="relative z-10 space-y-2 max-w-2xl">
+          <div className="inline-flex items-center gap-1.5 text-xs font-semibold text-amber-200 bg-orange-500/20 border border-orange-400/35 px-3 py-1 rounded-full">
+            <MapPin className="w-3.5 h-3.5 text-orange-300" />
+            <span>Sơ đồ không gian & Tầng phục vụ</span>
+          </div>
+          <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight">
             Quản lý Khu vực & Không gian quán
           </h1>
-          <p className="text-sm text-stone-500 mt-0.5">
+          <p className="text-sm text-amber-100/85">
             Phân chia các tầng, phòng lạnh, sân vườn để tổ chức sơ đồ bàn phục vụ tại chỗ
           </p>
         </div>
 
-        <div className="flex flex-wrap items-center gap-2.5">
-          <Link
-            to="/admin/tables"
-            className="inline-flex items-center gap-1.5 px-3.5 py-2.5 rounded-xl border border-stone-300 bg-white hover:bg-stone-50 text-sm font-semibold text-stone-700"
-          >
-            <LayoutGrid className="w-4 h-4 text-amber-700" />
-            <span>Quản lý bàn</span>
-          </Link>
+        {/* Cụm nút thao tác & thống kê sắp xếp 2 hàng gọn gàng */}
+        <div className="relative z-10 flex flex-col items-start lg:items-end gap-2.5 shrink-0">
+          <div className="flex flex-wrap items-center gap-2.5">
+            <Link
+              to="/admin/tables"
+              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-2xl border border-orange-400/30 bg-orange-950/75 hover:bg-orange-900/85 text-xs sm:text-sm font-semibold text-amber-100 transition-colors"
+            >
+              <LayoutGrid className="w-4 h-4 text-orange-300" />
+              <span>Quản lý bàn</span>
+            </Link>
 
-          <button
-            type="button"
-            disabled={refreshing}
-            onClick={() => fetchAreas({ isInitial: false })}
-            className="inline-flex items-center gap-1.5 px-3.5 py-2.5 rounded-xl border border-stone-300 bg-white hover:bg-stone-50 text-sm font-semibold text-stone-700 cursor-pointer"
-          >
-            <RefreshCw className={`w-4 h-4 ${refreshing ? 'animate-spin' : ''}`} />
-            <span>Làm mới</span>
-          </button>
+            <button
+              type="button"
+              onClick={handleOpenCreate}
+              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-2xl bg-amber-500 hover:bg-amber-400 text-stone-950 text-xs sm:text-sm font-extrabold shadow-sm transition-colors cursor-pointer"
+            >
+              <Plus className="w-4 h-4 stroke-[2.5]" />
+              <span>Thêm khu vực</span>
+            </button>
+          </div>
 
-          <button
-            type="button"
-            onClick={handleOpenCreate}
-            className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-amber-700 hover:bg-amber-800 text-white text-sm font-semibold shadow-2xs transition-colors cursor-pointer"
-          >
-            <Plus className="w-4 h-4" />
-            <span>Thêm khu vực</span>
-          </button>
+          <div className="flex flex-wrap items-center gap-2.5">
+            <div className="inline-flex items-center gap-2.5 px-3.5 py-2 rounded-2xl bg-orange-950/60 border border-orange-400/20 text-xs">
+              <span className="text-amber-200/75">Tổng khu vực:</span>
+              <span className="font-extrabold text-amber-300">{totalElements} khu vực</span>
+            </div>
+
+            <button
+              type="button"
+              disabled={refreshing}
+              onClick={() => fetchAreas({ isInitial: false })}
+              className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-2xl border border-orange-400/25 bg-orange-950/60 hover:bg-orange-900/80 text-xs font-semibold text-amber-100 transition-colors cursor-pointer"
+            >
+              <RefreshCw
+                className={`w-3.5 h-3.5 text-orange-300 ${refreshing ? 'animate-spin' : ''}`}
+              />
+              <span>Làm mới</span>
+            </button>
+          </div>
         </div>
       </div>
 
       {/* Thanh tìm kiếm & sắp xếp */}
       <div className="bg-white rounded-2xl border border-stone-200 p-4 shadow-2xs flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-        <div className="flex flex-1 flex-col sm:flex-row gap-3">
-          <div className="relative flex-1 max-w-md">
+        <div className="flex flex-1 flex-wrap sm:flex-nowrap items-center gap-3">
+          <div className="relative flex-1 max-w-md min-w-[200px]">
             <input
               type="text"
               value={keywordInput}
               onChange={(e) => setKeywordInput(e.target.value)}
               placeholder="Tìm theo tên khu vực (VD: Tầng 1, Sân vườn)..."
-              className="w-full pl-9 pr-3 py-2.5 rounded-xl border border-stone-300 text-sm focus:outline-none focus:ring-2 focus:ring-amber-600"
+              className="w-full pl-9 pr-3 py-2.5 rounded-xl border border-stone-300 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500"
             />
             <Search className="w-4 h-4 text-stone-400 absolute left-3 top-1/2 -translate-y-1/2" />
           </div>
 
-          <div className="relative w-full sm:w-52">
+          <div className="relative w-full sm:w-52 shrink-0">
             <select
               value={`${sortBy}:${sortDir}`}
               onChange={(e) => handleSortChange(e.target.value)}
-              className="w-full pl-9 pr-3 py-2.5 rounded-xl border border-stone-300 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-amber-600"
+              className="w-full pl-9 pr-3 py-2.5 rounded-xl border border-stone-300 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-orange-500"
             >
               <option value="name:asc">Tên khu vực A → Z</option>
               <option value="name:desc">Tên khu vực Z → A</option>
@@ -298,6 +325,17 @@ const AdminAreasPage = () => {
             </select>
             <ArrowUpDown className="w-4 h-4 text-stone-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
           </div>
+
+          {keywordInput.trim() && (
+            <button
+              type="button"
+              onClick={handleResetSearch}
+              className="inline-flex items-center gap-1 px-3 py-2.5 rounded-xl border border-stone-300 bg-white hover:bg-stone-50 text-xs font-semibold text-stone-600 cursor-pointer shrink-0"
+            >
+              <RotateCcw className="w-3.5 h-3.5" />
+              <span>Xóa lọc</span>
+            </button>
+          )}
         </div>
 
         <span className="text-xs text-stone-500 shrink-0">
@@ -338,32 +376,32 @@ const AdminAreasPage = () => {
                   const isDeleting = deletingId === area.id;
 
                   return (
-                    <tr key={area.id} className="hover:bg-stone-50/80 transition-colors">
+                    <tr key={area.id} className="hover:bg-orange-50/30 transition-colors">
                       <td className="py-3.5 px-4 font-mono text-xs font-bold text-stone-500">
                         #{area.id}
                       </td>
 
                       <td className="py-3.5 px-4">
                         <div className="flex items-center gap-3">
-                          <div className="w-9 h-9 rounded-xl bg-amber-50 border border-amber-200/70 text-amber-800 flex items-center justify-center shrink-0">
+                          <div className="w-9 h-9 rounded-xl bg-orange-50 border border-orange-200/70 text-orange-700 flex items-center justify-center shrink-0">
                             <MapPin className="w-4 h-4" />
                           </div>
                           <span className="font-bold text-stone-800">{area.name}</span>
                         </div>
                       </td>
 
-                      <td className="py-3.5 px-4 text-xs text-stone-600">
+                      <td className="py-3.5 px-4 text-xs text-stone-600 whitespace-nowrap">
                         <span className="inline-flex items-center gap-1.5">
                           <Clock className="w-3.5 h-3.5 text-stone-400" />
                           <span>{formatDateTime(area.createdAt)}</span>
                         </span>
                       </td>
 
-                      <td className="py-3.5 px-4 text-xs text-stone-500">
+                      <td className="py-3.5 px-4 text-xs text-stone-500 whitespace-nowrap">
                         {formatDateTime(area.updatedAt)}
                       </td>
 
-                      <td className="py-3.5 px-4">
+                      <td className="py-3.5 px-4 whitespace-nowrap">
                         <div className="flex items-center justify-end gap-2">
                           <button
                             type="button"
@@ -433,7 +471,7 @@ const AdminAreasPage = () => {
           >
             <div className="p-5 border-b border-stone-200 flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-lg bg-amber-50 text-amber-800 flex items-center justify-center">
+                <div className="w-8 h-8 rounded-lg bg-orange-50 border border-orange-200/70 text-orange-700 flex items-center justify-center">
                   <MapPin className="w-4 h-4" />
                 </div>
                 <h2 className="text-base font-extrabold text-stone-800">
@@ -464,7 +502,7 @@ const AdminAreasPage = () => {
                     setModalState((prev) => ({ ...prev, name: e.target.value }))
                   }
                   placeholder="VD: Tầng 1 - Trong nhà, Sân vườn..."
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-stone-300 text-sm focus:outline-none focus:ring-2 focus:ring-amber-600"
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-stone-300 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500"
                 />
               </div>
 
@@ -482,7 +520,7 @@ const AdminAreasPage = () => {
                         onClick={() =>
                           setModalState((prev) => ({ ...prev, name: suggestion }))
                         }
-                        className="px-2.5 py-1 rounded-lg bg-stone-100 hover:bg-amber-50 hover:text-amber-900 border border-stone-200 text-xs font-medium text-stone-700 transition-colors cursor-pointer"
+                        className="px-2.5 py-1 rounded-lg bg-stone-100 hover:bg-orange-50 hover:text-orange-900 border border-stone-200 text-xs font-medium text-stone-700 transition-colors cursor-pointer"
                       >
                         + {suggestion}
                       </button>
@@ -502,7 +540,7 @@ const AdminAreasPage = () => {
                 <button
                   type="submit"
                   disabled={modalState.saving}
-                  className="px-5 py-2 rounded-xl bg-amber-700 hover:bg-amber-800 disabled:bg-stone-300 text-white text-xs font-semibold cursor-pointer"
+                  className="px-5 py-2 rounded-xl bg-orange-600 hover:bg-orange-700 disabled:bg-stone-300 text-white text-xs font-semibold cursor-pointer"
                 >
                   {modalState.saving ? 'Đang lưu...' : 'Lưu khu vực'}
                 </button>

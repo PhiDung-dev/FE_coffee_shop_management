@@ -37,8 +37,8 @@ const TABLE_STATUS_META = {
   OCCUPIED: {
     label: 'Đang phục vụ',
     shortLabel: 'Có khách',
-    badgeClass: 'bg-amber-50 text-amber-800 border-amber-200',
-    cardClass: 'border-amber-200/90 bg-amber-50/25',
+    badgeClass: 'bg-orange-50 text-orange-800 border-orange-200',
+    cardClass: 'border-orange-200/90 bg-orange-50/25',
     icon: UtensilsCrossed,
   },
   RESERVED: {
@@ -60,7 +60,7 @@ const TABLE_STATUS_META = {
 const RESERVATION_STATUS_META = {
   PENDING: {
     label: 'Chờ xác nhận',
-    badgeClass: 'bg-amber-50 text-amber-800 border-amber-200',
+    badgeClass: 'bg-orange-50 text-orange-800 border-orange-200',
   },
   CONFIRMED: {
     label: 'Đã xác nhận',
@@ -608,69 +608,90 @@ const AdminTablesPage = () => {
 
   return (
     <div className="space-y-6 pb-14">
-      {/* Header */}
-      <div className="bg-white rounded-2xl border border-stone-200 p-6 shadow-2xs flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-extrabold text-stone-800">
+      {/* Header gradient cam ấm với bố cục nút 2 tầng cân đối */}
+      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-stone-950 via-amber-950 to-orange-900 text-white p-6 sm:p-8 shadow-md border border-orange-500/25 flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+        <div className="absolute -right-10 -top-12 w-64 h-64 rounded-full bg-orange-500/20 blur-3xl pointer-events-none" />
+        <div className="absolute left-1/3 -bottom-16 w-56 h-56 rounded-full bg-amber-400/15 blur-3xl pointer-events-none" />
+
+        <div className="relative z-10 space-y-2 max-w-2xl">
+          <div className="inline-flex items-center gap-1.5 text-xs font-semibold text-amber-200 bg-orange-500/20 border border-orange-400/35 px-3 py-1 rounded-full">
+            <LayoutGrid className="w-3.5 h-3.5 text-orange-300" />
+            <span>Sơ đồ bàn & Điều phối đặt chỗ</span>
+          </div>
+          <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight">
             Quản lý Bàn & Lịch đặt chỗ
           </h1>
-          <p className="text-sm text-stone-500 mt-0.5">
+          <p className="text-sm text-amber-100/85">
             Thiết lập sơ đồ bàn theo khu vực, kiểm soát trạng thái phục vụ và điều phối lịch hẹn
             khách hàng
           </p>
         </div>
 
-        <div className="flex flex-wrap items-center gap-2.5 self-start lg:self-center">
-          <div className="inline-flex rounded-xl bg-stone-100 p-1 border border-stone-200">
-            <button
-              type="button"
-              onClick={() => setActiveTab('TABLES')}
-              className={`px-3.5 py-2 rounded-lg text-xs sm:text-sm font-semibold transition-all cursor-pointer ${
-                activeTab === 'TABLES'
-                  ? 'bg-white text-amber-800 shadow-2xs'
-                  : 'text-stone-600 hover:text-stone-900'
-              }`}
-            >
-              Danh sách bàn ({tables.length})
-            </button>
-            <button
-              type="button"
-              onClick={() => setActiveTab('RESERVATIONS')}
-              className={`px-3.5 py-2 rounded-lg text-xs sm:text-sm font-semibold transition-all inline-flex items-center gap-1.5 cursor-pointer ${
-                activeTab === 'RESERVATIONS'
-                  ? 'bg-white text-amber-800 shadow-2xs'
-                  : 'text-stone-600 hover:text-stone-900'
-              }`}
-            >
-              <span>Lịch đặt bàn</span>
-              {kpiStats.pendingReservations > 0 && (
-                <span className="px-1.5 py-0.2 rounded-full bg-amber-700 text-white text-[11px] font-bold">
-                  {kpiStats.pendingReservations}
-                </span>
-              )}
-            </button>
+        {/* Cụm chuyển tab & nút thao tác sắp xếp 2 hàng gọn gàng */}
+        <div className="relative z-10 flex flex-col items-start lg:items-end gap-2.5 shrink-0">
+          <div className="flex flex-wrap items-center gap-2.5">
+            <div className="inline-flex rounded-2xl bg-orange-950/75 p-1 border border-orange-400/30">
+              <button
+                type="button"
+                onClick={() => setActiveTab('TABLES')}
+                className={`px-3.5 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all cursor-pointer ${
+                  activeTab === 'TABLES'
+                    ? 'bg-orange-500/30 text-amber-200 border border-orange-400/40'
+                    : 'text-amber-100/75 hover:text-white'
+                }`}
+              >
+                Danh sách bàn ({tables.length})
+              </button>
+              <button
+                type="button"
+                onClick={() => setActiveTab('RESERVATIONS')}
+                className={`px-3.5 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all inline-flex items-center gap-1.5 cursor-pointer ${
+                  activeTab === 'RESERVATIONS'
+                    ? 'bg-orange-500/30 text-amber-200 border border-orange-400/40'
+                    : 'text-amber-100/75 hover:text-white'
+                }`}
+              >
+                <span>Lịch đặt bàn</span>
+                {kpiStats.pendingReservations > 0 && (
+                  <span className="px-1.5 py-0.5 rounded-full bg-amber-500 text-stone-950 text-[11px] font-extrabold leading-none">
+                    {kpiStats.pendingReservations}
+                  </span>
+                )}
+              </button>
+            </div>
+
+            {activeTab === 'TABLES' && (
+              <button
+                type="button"
+                onClick={openCreateTableModal}
+                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-2xl bg-amber-500 hover:bg-amber-400 text-stone-950 text-xs sm:text-sm font-extrabold shadow-sm transition-colors cursor-pointer"
+              >
+                <Plus className="w-4 h-4 stroke-[2.5]" />
+                <span>Thêm bàn mới</span>
+              </button>
+            )}
           </div>
 
-          <button
-            type="button"
-            disabled={refreshing}
-            onClick={() => fetchAllData({ isInitial: false })}
-            className="inline-flex items-center gap-1.5 px-3.5 py-2.5 rounded-xl border border-stone-300 bg-white hover:bg-stone-50 text-xs sm:text-sm font-semibold text-stone-700 transition-colors cursor-pointer"
-          >
-            <RefreshCw className={`w-4 h-4 ${refreshing ? 'animate-spin' : ''}`} />
-            <span>Làm mới</span>
-          </button>
+          <div className="flex flex-wrap items-center gap-2.5">
+            <div className="inline-flex items-center gap-2.5 px-3.5 py-2 rounded-2xl bg-orange-950/60 border border-orange-400/20 text-xs">
+              <span className="text-amber-200/75">Sức chứa:</span>
+              <span className="font-extrabold text-amber-300">
+                {kpiStats.totalTables} bàn • {kpiStats.totalSeats} ghế
+              </span>
+            </div>
 
-          {activeTab === 'TABLES' && (
             <button
               type="button"
-              onClick={openCreateTableModal}
-              className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-amber-700 hover:bg-amber-800 text-white text-xs sm:text-sm font-semibold shadow-2xs transition-colors cursor-pointer"
+              disabled={refreshing}
+              onClick={() => fetchAllData({ isInitial: false })}
+              className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-2xl border border-orange-400/25 bg-orange-950/60 hover:bg-orange-900/80 text-xs font-semibold text-amber-100 transition-colors cursor-pointer"
             >
-              <Plus className="w-4 h-4" />
-              <span>Thêm bàn mới</span>
+              <RefreshCw
+                className={`w-3.5 h-3.5 text-orange-300 ${refreshing ? 'animate-spin' : ''}`}
+              />
+              <span>Làm mới</span>
             </button>
-          )}
+          </div>
         </div>
       </div>
 
@@ -679,7 +700,7 @@ const AdminTablesPage = () => {
         <div className="bg-white rounded-2xl border border-stone-200 p-4 shadow-2xs">
           <div className="flex items-center justify-between text-xs font-semibold text-stone-500">
             <span>Tổng số bàn / Sức chứa</span>
-            <Layers className="w-4 h-4 text-amber-700" />
+            <Layers className="w-4 h-4 text-orange-600" />
           </div>
           <p className="text-2xl font-extrabold text-stone-800 mt-2">
             {kpiStats.totalTables}{' '}
@@ -702,9 +723,9 @@ const AdminTablesPage = () => {
         <div className="bg-white rounded-2xl border border-stone-200 p-4 shadow-2xs">
           <div className="flex items-center justify-between text-xs font-semibold text-stone-500">
             <span>Đang phục vụ khách</span>
-            <UtensilsCrossed className="w-4 h-4 text-amber-600" />
+            <UtensilsCrossed className="w-4 h-4 text-orange-600" />
           </div>
-          <p className="text-2xl font-extrabold text-amber-800 mt-2">
+          <p className="text-2xl font-extrabold text-orange-800 mt-2">
             {kpiStats.occupiedTables}
           </p>
         </div>
@@ -742,7 +763,7 @@ const AdminTablesPage = () => {
                     onClick={() => setTableStatusFilter(tab.key)}
                     className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition-colors cursor-pointer ${
                       tableStatusFilter === tab.key
-                        ? 'bg-stone-800 text-white'
+                        ? 'bg-orange-600 text-white'
                         : 'bg-stone-100 text-stone-700 hover:bg-stone-200'
                     }`}
                   >
@@ -758,7 +779,7 @@ const AdminTablesPage = () => {
                     value={tableKeyword}
                     onChange={(e) => setTableKeyword(e.target.value)}
                     placeholder="Tìm số bàn, khu vực..."
-                    className="w-full pl-9 pr-3 py-2 rounded-xl border border-stone-300 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-amber-600"
+                    className="w-full pl-9 pr-3 py-2 rounded-xl border border-stone-300 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-orange-500"
                   />
                   <Search className="w-4 h-4 text-stone-400 absolute left-3 top-1/2 -translate-y-1/2" />
                 </div>
@@ -770,7 +791,7 @@ const AdminTablesPage = () => {
                     title="Dạng bảng quản trị"
                     className={`p-1.5 rounded-lg cursor-pointer ${
                       viewMode === 'TABLE'
-                        ? 'bg-white text-amber-800 shadow-2xs'
+                        ? 'bg-white text-orange-700 shadow-2xs'
                         : 'text-stone-500 hover:text-stone-800'
                     }`}
                   >
@@ -782,7 +803,7 @@ const AdminTablesPage = () => {
                     title="Sơ đồ thẻ theo khu vực"
                     className={`p-1.5 rounded-lg cursor-pointer ${
                       viewMode === 'GRID'
-                        ? 'bg-white text-amber-800 shadow-2xs'
+                        ? 'bg-white text-orange-700 shadow-2xs'
                         : 'text-stone-500 hover:text-stone-800'
                     }`}
                   >
@@ -798,8 +819,8 @@ const AdminTablesPage = () => {
                 onClick={() => setSelectedAreaId('ALL')}
                 className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold shrink-0 cursor-pointer ${
                   selectedAreaId === 'ALL'
-                    ? 'bg-amber-700 text-white'
-                    : 'bg-amber-50 text-amber-900 hover:bg-amber-100'
+                    ? 'bg-stone-900 text-white'
+                    : 'bg-orange-50 text-orange-900 hover:bg-orange-100'
                 }`}
               >
                 Tất cả khu vực ({tables.length})
@@ -812,8 +833,8 @@ const AdminTablesPage = () => {
                   onClick={() => setSelectedAreaId(String(area.id))}
                   className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold shrink-0 cursor-pointer ${
                     String(selectedAreaId) === String(area.id)
-                      ? 'bg-amber-700 text-white'
-                      : 'bg-amber-50 text-amber-900 hover:bg-amber-100'
+                      ? 'bg-stone-900 text-white'
+                      : 'bg-orange-50 text-orange-900 hover:bg-orange-100'
                   }`}
                 >
                   {area.name} ({tableCountByArea[String(area.id)] || 0})
@@ -833,7 +854,7 @@ const AdminTablesPage = () => {
               <button
                 type="button"
                 onClick={openCreateTableModal}
-                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-amber-700 text-white text-xs font-semibold cursor-pointer"
+                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-orange-600 hover:bg-orange-700 text-white text-xs font-semibold cursor-pointer"
               >
                 <Plus className="w-4 h-4" />
                 <span>Thêm bàn mới</span>
@@ -868,7 +889,7 @@ const AdminTablesPage = () => {
                       return (
                         <tr
                           key={table.id}
-                          className="hover:bg-stone-50/70 transition-colors"
+                          className="hover:bg-orange-50/30 transition-colors"
                         >
                           <td className="py-3.5 px-4 font-extrabold text-stone-800">
                             {table.tableNumber}
@@ -876,7 +897,7 @@ const AdminTablesPage = () => {
 
                           <td className="py-3.5 px-4 text-stone-600">
                             <span className="inline-flex items-center gap-1.5">
-                              <MapPin className="w-3.5 h-3.5 text-amber-700" />
+                              <MapPin className="w-3.5 h-3.5 text-orange-600" />
                               <span>{areaLabel}</span>
                             </span>
                           </td>
@@ -922,7 +943,7 @@ const AdminTablesPage = () => {
                                 type="button"
                                 onClick={() => openEditTableModal(table)}
                                 title="Sửa thông tin bàn"
-                                className="p-2 rounded-xl border border-stone-200 hover:border-amber-400 hover:bg-amber-50 text-stone-700 transition-colors cursor-pointer"
+                                className="p-2 rounded-xl border border-stone-200 hover:border-orange-400 hover:bg-orange-50 text-stone-700 transition-colors cursor-pointer"
                               >
                                 <Pencil className="w-3.5 h-3.5" />
                               </button>
@@ -949,11 +970,11 @@ const AdminTablesPage = () => {
               {groupedTablesByArea.map(([areaName, areaTables]) => (
                 <section key={areaName} className="space-y-3">
                   <div className="flex items-center gap-2">
-                    <MapPin className="w-4 h-4 text-amber-700" />
+                    <MapPin className="w-4 h-4 text-orange-600" />
                     <h2 className="text-sm font-extrabold uppercase tracking-wider text-stone-700">
                       {areaName}
                     </h2>
-                    <span className="px-2 py-0.5 rounded-full bg-stone-200/80 text-stone-700 text-xs font-bold">
+                    <span className="px-2 py-0.5 rounded-full bg-orange-100/80 text-orange-900 text-xs font-bold">
                       {areaTables.length} bàn
                     </span>
                   </div>
@@ -984,7 +1005,7 @@ const AdminTablesPage = () => {
                             </div>
 
                             <p className="text-xs text-stone-600 flex items-center gap-1">
-                              <Users className="w-3.5 h-3.5 text-amber-700" />
+                              <Users className="w-3.5 h-3.5 text-orange-600" />
                               <span>{table.capacity} chỗ ngồi</span>
                             </p>
                           </div>
@@ -993,7 +1014,7 @@ const AdminTablesPage = () => {
                             <button
                               type="button"
                               onClick={() => openEditTableModal(table)}
-                              className="flex-1 py-1.5 px-2 rounded-lg bg-white border border-stone-200 hover:border-amber-400 text-xs font-semibold text-stone-700 inline-flex items-center justify-center gap-1 cursor-pointer"
+                              className="flex-1 py-1.5 px-2 rounded-lg bg-white border border-stone-200 hover:border-orange-400 text-xs font-semibold text-stone-700 inline-flex items-center justify-center gap-1 cursor-pointer"
                             >
                               <Pencil className="w-3 h-3" />
                               <span>Sửa</span>
@@ -1053,7 +1074,7 @@ const AdminTablesPage = () => {
                   onClick={() => setResvStatusFilter(tab.key)}
                   className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition-colors cursor-pointer ${
                     resvStatusFilter === tab.key
-                      ? 'bg-stone-800 text-white'
+                      ? 'bg-orange-600 text-white'
                       : 'bg-stone-100 text-stone-700 hover:bg-stone-200'
                   }`}
                 >
@@ -1068,7 +1089,7 @@ const AdminTablesPage = () => {
                 value={resvKeyword}
                 onChange={(e) => setResvKeyword(e.target.value)}
                 placeholder="Tìm mã, SĐT, email, số bàn..."
-                className="w-full pl-9 pr-3 py-2 rounded-xl border border-stone-300 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-amber-600"
+                className="w-full pl-9 pr-3 py-2 rounded-xl border border-stone-300 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-orange-500"
               />
               <Search className="w-4 h-4 text-stone-400 absolute left-3 top-1/2 -translate-y-1/2" />
             </div>
@@ -1099,7 +1120,7 @@ const AdminTablesPage = () => {
                             Lịch hẹn #{resv.id}
                           </span>
                           <h3 className="text-base font-extrabold text-stone-800 flex items-center gap-1.5 mt-0.5">
-                            <Clock className="w-4 h-4 text-amber-700" />
+                            <Clock className="w-4 h-4 text-orange-600" />
                             <span>{formatDateTime(resv.reservationTime)}</span>
                           </h3>
                         </div>
@@ -1119,7 +1140,7 @@ const AdminTablesPage = () => {
                               resv.accountEmail ||
                               `Tài khoản #${resv.accountId}`}
                           </strong>{' '}
-                          • <strong>{resv.guestCount} khách</strong>
+                          - <strong>{resv.guestCount} khách</strong>
                         </p>
 
                         <div className="flex flex-wrap items-center gap-1.5 pt-1">
@@ -1129,7 +1150,7 @@ const AdminTablesPage = () => {
                             linkedTables.map((tb) => (
                               <span
                                 key={tb.id}
-                                className="px-2.5 py-0.5 rounded-lg bg-amber-50 border border-amber-200/80 text-amber-900 font-semibold"
+                                className="px-2.5 py-0.5 rounded-lg bg-orange-50 border border-orange-200/80 text-orange-900 font-semibold"
                               >
                                 Bàn {tb.tableNumber} ({tb.areaName || 'Chung'})
                               </span>
@@ -1195,7 +1216,7 @@ const AdminTablesPage = () => {
                           type="button"
                           onClick={() => openEditReservationModal(resv)}
                           title="Đổi giờ / Xếp lại bàn"
-                          className="p-1.5 rounded-lg border border-stone-200 hover:border-amber-400 text-stone-700 cursor-pointer"
+                          className="p-1.5 rounded-lg border border-stone-200 hover:border-orange-400 text-stone-700 cursor-pointer"
                         >
                           <Pencil className="w-3.5 h-3.5" />
                         </button>
@@ -1253,7 +1274,7 @@ const AdminTablesPage = () => {
                     setTableModal((prev) => ({ ...prev, tableNumber: e.target.value }))
                   }
                   placeholder="VD: B01, Tầng 2 - 05..."
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-stone-300 focus:outline-none focus:ring-2 focus:ring-amber-600"
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-stone-300 focus:outline-none focus:ring-2 focus:ring-orange-500"
                 />
               </div>
 
@@ -1270,7 +1291,7 @@ const AdminTablesPage = () => {
                     onChange={(e) =>
                       setTableModal((prev) => ({ ...prev, capacity: e.target.value }))
                     }
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-stone-300 focus:outline-none focus:ring-2 focus:ring-amber-600"
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-stone-300 focus:outline-none focus:ring-2 focus:ring-orange-500"
                   />
                 </div>
 
@@ -1283,7 +1304,7 @@ const AdminTablesPage = () => {
                     onChange={(e) =>
                       setTableModal((prev) => ({ ...prev, status: e.target.value }))
                     }
-                    className="w-full px-3 py-2.5 rounded-xl border border-stone-300 bg-white focus:outline-none focus:ring-2 focus:ring-amber-600"
+                    className="w-full px-3 py-2.5 rounded-xl border border-stone-300 bg-white focus:outline-none focus:ring-2 focus:ring-orange-500"
                   >
                     {Object.entries(TABLE_STATUS_META).map(([key, item]) => (
                       <option key={key} value={key}>
@@ -1303,7 +1324,7 @@ const AdminTablesPage = () => {
                   onChange={(e) =>
                     setTableModal((prev) => ({ ...prev, areaId: e.target.value }))
                   }
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-stone-300 bg-white focus:outline-none focus:ring-2 focus:ring-amber-600"
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-stone-300 bg-white focus:outline-none focus:ring-2 focus:ring-orange-500"
                 >
                   <option value="">— Khu vực chung —</option>
                   {areas.map((a) => (
@@ -1325,7 +1346,7 @@ const AdminTablesPage = () => {
                 <button
                   type="submit"
                   disabled={tableModal.submitting}
-                  className="px-5 py-2 rounded-xl bg-amber-700 hover:bg-amber-800 disabled:bg-stone-300 text-white text-xs font-semibold cursor-pointer"
+                  className="px-5 py-2 rounded-xl bg-orange-600 hover:bg-orange-700 disabled:bg-stone-300 text-white text-xs font-semibold cursor-pointer"
                 >
                   {tableModal.submitting
                     ? 'Đang lưu...'
@@ -1424,7 +1445,7 @@ const AdminTablesPage = () => {
                         reservationTime: e.target.value,
                       }))
                     }
-                    className="w-full px-3 py-2 rounded-xl border border-stone-300 text-xs focus:outline-none focus:ring-2 focus:ring-amber-600"
+                    className="w-full px-3 py-2 rounded-xl border border-stone-300 text-xs focus:outline-none focus:ring-2 focus:ring-orange-500"
                   />
                 </div>
 
@@ -1443,7 +1464,7 @@ const AdminTablesPage = () => {
                         guestCount: e.target.value,
                       }))
                     }
-                    className="w-full px-3 py-2 rounded-xl border border-stone-300 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-amber-600"
+                    className="w-full px-3 py-2 rounded-xl border border-stone-300 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-orange-500"
                   />
                 </div>
 
@@ -1456,7 +1477,7 @@ const AdminTablesPage = () => {
                     onChange={(e) =>
                       setEditResvModal((prev) => ({ ...prev, status: e.target.value }))
                     }
-                    className="w-full px-3 py-2 rounded-xl border border-stone-300 bg-white text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-amber-600"
+                    className="w-full px-3 py-2 rounded-xl border border-stone-300 bg-white text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-orange-500"
                   >
                     {Object.entries(RESERVATION_STATUS_META).map(([key, item]) => (
                       <option key={key} value={key}>
@@ -1481,14 +1502,14 @@ const AdminTablesPage = () => {
                         onClick={() => toggleEditResvTable(t.id)}
                         className={`px-2.5 py-2 rounded-xl border text-left text-xs transition-colors cursor-pointer ${
                           checked
-                            ? 'bg-amber-700 text-white border-amber-700 font-bold'
-                            : 'bg-white text-stone-700 border-stone-200 hover:border-amber-400'
+                            ? 'bg-orange-600 text-white border-orange-600 font-bold'
+                            : 'bg-white text-stone-700 border-stone-200 hover:border-orange-400'
                         }`}
                       >
                         <div className="truncate">{t.tableNumber}</div>
                         <div
                           className={`text-[10px] ${
-                            checked ? 'text-amber-100' : 'text-stone-400'
+                            checked ? 'text-orange-100' : 'text-stone-400'
                           }`}
                         >
                           {t.capacity} chỗ • {t.areaName || 'Chung'}
@@ -1509,7 +1530,7 @@ const AdminTablesPage = () => {
                   onChange={(e) =>
                     setEditResvModal((prev) => ({ ...prev, note: e.target.value }))
                   }
-                  className="w-full px-3.5 py-2 rounded-xl border border-stone-300 text-xs focus:outline-none focus:ring-2 focus:ring-amber-600"
+                  className="w-full px-3.5 py-2 rounded-xl border border-stone-300 text-xs focus:outline-none focus:ring-2 focus:ring-orange-500"
                 />
               </div>
 
@@ -1524,7 +1545,7 @@ const AdminTablesPage = () => {
                 <button
                   type="submit"
                   disabled={editResvModal.submitting}
-                  className="px-5 py-2 rounded-xl bg-amber-700 hover:bg-amber-800 text-white text-xs font-semibold cursor-pointer disabled:opacity-50"
+                  className="px-5 py-2 rounded-xl bg-orange-600 hover:bg-orange-700 text-white text-xs font-semibold cursor-pointer disabled:opacity-50"
                 >
                   {editResvModal.submitting ? 'Đang lưu...' : 'Lưu điều chỉnh'}
                 </button>

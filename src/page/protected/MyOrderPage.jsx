@@ -19,6 +19,7 @@ import {
   FileText,
   Building2,
   Printer,
+  ReceiptText,
 } from 'lucide-react';
 import orderService from '../../service/orderService';
 import paymentService from '../../service/paymentService';
@@ -451,31 +452,37 @@ const MyOrdersPage = () => {
   };
 
   return (
-    <div className="max-w-5xl mx-auto space-y-6 pb-12">
-      {/* Header */}
-      <div className="bg-white rounded-2xl border border-stone-200 p-6 shadow-2xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl sm:text-3xl font-extrabold text-stone-800 tracking-tight">
+    <div className="w-full mx-auto space-y-6 pb-12">
+      {/* Header nổi bật đồng bộ với các trang khác */}
+      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-stone-950 via-stone-900 to-amber-950 text-white p-6 sm:p-8 shadow-md border border-stone-800/80 flex flex-col lg:flex-row lg:items-center justify-between gap-5">
+        <div className="absolute -right-12 -top-12 w-56 h-56 rounded-full bg-amber-500/15 blur-3xl pointer-events-none" />
+
+        <div className="relative z-10 space-y-1.5">
+          <div className="inline-flex items-center gap-1.5 text-xs font-semibold text-amber-300 bg-amber-500/15 border border-amber-400/25 px-3 py-1 rounded-full">
+            <ReceiptText className="w-3.5 h-3.5 text-amber-400" />
+            <span>Lịch sử đơn hàng CoffeeHouse</span>
+          </div>
+          <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight">
             Đơn hàng của tôi
           </h1>
-          <p className="text-sm text-stone-500 mt-1">
+          <p className="text-sm text-stone-300 max-w-2xl">
             Theo dõi trạng thái pha chế, giao hàng, thanh toán và xuất hóa đơn VAT
           </p>
         </div>
 
-        <div className="flex items-center gap-2.5 self-start sm:self-center">
+        <div className="relative z-10 flex flex-wrap items-center gap-2.5 self-start lg:self-center">
           <button
             type="button"
             onClick={fetchMyOrders}
-            className="inline-flex items-center gap-1.5 px-3.5 py-2.5 rounded-xl border border-stone-300 bg-white hover:bg-stone-50 text-sm font-semibold text-stone-700 cursor-pointer"
+            className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-2xl border border-stone-700 bg-stone-900/80 hover:bg-stone-800 text-xs sm:text-sm font-semibold text-stone-100 transition-colors cursor-pointer"
           >
-            <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
+            <RefreshCw className={`w-4 h-4 text-amber-400 ${loading ? 'animate-spin' : ''}`} />
             <span>Làm mới</span>
           </button>
 
           <Link
             to="/menu"
-            className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-amber-700 hover:bg-amber-800 text-white text-sm font-semibold transition-colors"
+            className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-2xl bg-amber-500 hover:bg-amber-400 text-stone-950 text-xs sm:text-sm font-bold shadow-sm transition-colors"
           >
             <Coffee className="w-4 h-4" />
             <span>Đặt món mới</span>
@@ -851,7 +858,6 @@ const MyOrdersPage = () => {
                 </div>
               ) : invoiceModal.invoice ? (
                 <>
-                  {/* Trường hợp 1: Đơn đã có hóa đơn -> hiển thị chi tiết hóa đơn & nút In */}
                   <div className="p-4 rounded-xl bg-emerald-50/70 border border-emerald-200 space-y-1.5 text-xs">
                     <div className="flex items-center justify-between">
                       <span className="font-bold text-emerald-900">
@@ -909,7 +915,6 @@ const MyOrdersPage = () => {
                   </div>
                 </>
               ) : (
-                /* Trường hợp 2: Chưa xuất hóa đơn -> cho khách chọn TaxProfile và xuất hóa đơn */
                 <form onSubmit={handleCustomerIssueInvoice} className="space-y-4">
                   {!isPaymentSuccessful(invoiceModal.payment) && (
                     <div className="p-3 rounded-xl bg-amber-50 border border-amber-200 text-amber-800 text-xs flex items-start gap-2">

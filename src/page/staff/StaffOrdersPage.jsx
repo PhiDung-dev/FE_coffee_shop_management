@@ -18,6 +18,7 @@ import {
   ChefHat,
   ArrowRight,
   UserCheck,
+  ClipboardList,
 } from 'lucide-react';
 import orderService from '../../service/orderService';
 import paymentService from '../../service/paymentService';
@@ -416,24 +417,41 @@ const StaffOrdersPage = () => {
 
   return (
     <div className="space-y-6 pb-16">
-      {/* Header */}
-      <div className="bg-white rounded-2xl border border-stone-200 p-6 shadow-2xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-extrabold text-stone-800">Quản lý & Điều phối đơn hàng</h1>
-          <p className="text-sm text-stone-500 mt-0.5">
+      {/* Header nổi bật đồng bộ màu sắc với các trang khác */}
+      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-stone-950 via-stone-900 to-amber-950 text-white p-6 sm:p-8 shadow-md border border-stone-800/80 flex flex-col lg:flex-row lg:items-center justify-between gap-5">
+        <div className="absolute -right-12 -top-12 w-56 h-56 rounded-full bg-amber-500/15 blur-3xl pointer-events-none" />
+
+        <div className="relative z-10 space-y-1.5">
+          <div className="inline-flex items-center gap-1.5 text-xs font-semibold text-amber-300 bg-amber-500/15 border border-amber-400/25 px-3 py-1 rounded-full">
+            <ClipboardList className="w-3.5 h-3.5 text-amber-400" />
+            <span>Điều phối bếp & Giao vận CoffeeHouse</span>
+          </div>
+          <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight">
+            Quản lý & Điều phối đơn hàng
+          </h1>
+          <p className="text-sm text-stone-300 max-w-2xl">
             Tiếp nhận đơn đặt online, cập nhật tiến độ pha chế, giao hàng và xác nhận thu tiền
           </p>
         </div>
 
-        <button
-          type="button"
-          disabled={refreshing}
-          onClick={() => fetchAllOrders({ isInitial: false })}
-          className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl border border-stone-300 bg-white hover:bg-stone-50 text-sm font-semibold text-stone-700 self-start sm:self-center cursor-pointer"
-        >
-          <RefreshCw className={`w-4 h-4 ${refreshing ? 'animate-spin' : ''}`} />
-          <span>{refreshing ? 'Đang tải...' : 'Làm mới danh sách'}</span>
-        </button>
+        <div className="relative z-10 flex flex-wrap items-center gap-3 self-start lg:self-center">
+          <div className="px-4 py-2 rounded-2xl bg-stone-900/85 border border-stone-700/80 text-xs">
+            <span className="text-stone-400 block">Chờ xác nhận</span>
+            <span className="text-sm font-extrabold text-amber-300">
+              {statusCounts.PENDING} / {statusCounts.ALL} đơn
+            </span>
+          </div>
+
+          <button
+            type="button"
+            disabled={refreshing}
+            onClick={() => fetchAllOrders({ isInitial: false })}
+            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-amber-500 hover:bg-amber-400 text-stone-950 text-xs sm:text-sm font-bold shadow-sm transition-colors cursor-pointer"
+          >
+            <RefreshCw className={`w-4 h-4 ${refreshing ? 'animate-spin' : ''}`} />
+            <span>{refreshing ? 'Đang tải...' : 'Làm mới danh sách'}</span>
+          </button>
+        </div>
       </div>
 
       {/* Bộ lọc trạng thái, loại đơn & tìm kiếm */}

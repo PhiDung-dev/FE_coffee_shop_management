@@ -534,29 +534,29 @@ const ReservationsPage = () => {
         type="button"
         disabled={!statusCfg.selectable}
         onClick={() => toggleSelectTable(table)}
-        className={`relative p-4 rounded-2xl border text-left transition-all flex flex-col justify-between min-h-[124px] ${
+        className={`relative p-3.5 rounded-xl border text-left transition-all flex flex-col justify-between min-h-[116px] ${
           isSelected
-            ? 'border-amber-600 bg-amber-50/80 ring-2 ring-amber-600/30 cursor-pointer'
+            ? 'border-amber-800 bg-amber-50/75 ring-1 ring-amber-800 cursor-pointer'
             : statusCfg.selectable
-              ? 'border-emerald-200/90 bg-white hover:border-amber-400 hover:shadow-2xs cursor-pointer'
-              : 'border-stone-200 bg-stone-50/80 opacity-65 cursor-not-allowed'
+              ? 'border-stone-200 bg-white hover:border-amber-700 hover:shadow-2xs cursor-pointer'
+              : 'border-stone-200/80 bg-stone-50/80 opacity-60 cursor-not-allowed'
         }`}
       >
         <div className="flex items-start justify-between gap-2">
           <div className="min-w-0">
-            <p className="text-base font-extrabold text-stone-800 truncate">
+            <p className="text-base font-bold text-stone-900 truncate">
               {table.tableNumber}
             </p>
-            <p className="text-[11px] text-stone-500 mt-0.5 truncate">{areaLabel}</p>
+            <p className="text-xs text-stone-500 mt-0.5 truncate">{areaLabel}</p>
           </div>
 
           {isSelected ? (
-            <span className="w-6 h-6 rounded-full bg-amber-700 text-white flex items-center justify-center shrink-0">
+            <span className="w-5 h-5 rounded-md bg-amber-800 text-white flex items-center justify-center shrink-0">
               <Check className="w-3.5 h-3.5" />
             </span>
           ) : (
             <span
-              className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold border shrink-0 ${statusCfg.badgeClass}`}
+              className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-medium border shrink-0 ${statusCfg.badgeClass}`}
             >
               <StatusIcon className="w-3 h-3" />
               <span>{statusCfg.shortLabel}</span>
@@ -564,18 +564,18 @@ const ReservationsPage = () => {
           )}
         </div>
 
-        <div className="pt-3 mt-2 border-t border-stone-200/60 flex items-center justify-between text-xs">
+        <div className="pt-2.5 mt-2 border-t border-stone-100 flex items-center justify-between text-xs">
           <span className="inline-flex items-center gap-1 font-medium text-stone-600">
-            <Users className="w-3.5 h-3.5 text-amber-700" />
+            <Users className="w-3.5 h-3.5 text-stone-400" />
             <span>{table.capacity} chỗ</span>
           </span>
 
           {isSelected ? (
-            <span className="font-bold text-amber-800">Đang chọn</span>
+            <span className="font-semibold text-amber-900">Đã chọn</span>
           ) : statusCfg.selectable ? (
-            <span className="font-semibold text-emerald-700">Chọn bàn +</span>
+            <span className="font-semibold text-emerald-700">Chọn</span>
           ) : (
-            <span className="text-stone-400">{statusCfg.label}</span>
+            <span className="text-stone-400">{statusCfg.shortLabel}</span>
           )}
         </div>
       </button>
@@ -583,31 +583,33 @@ const ReservationsPage = () => {
   };
 
   return (
-    <div className="max-w-6xl mx-auto space-y-6 pb-14">
-      {/* Đầu trang & Chuyển tab */}
-      <div className="bg-white rounded-2xl border border-stone-200 p-6 shadow-2xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <div className="inline-flex items-center gap-1.5 text-xs font-semibold text-amber-800 bg-amber-50 px-2.5 py-1 rounded-full mb-2">
-            <CalendarCheck className="w-3.5 h-3.5" />
-            <span>Đặt bàn trực tuyến</span>
+    <div className="w-full space-y-6 pb-16">
+      {/* Đầu trang nổi bật đồng bộ với MenuPage */}
+      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-stone-950 via-stone-900 to-amber-950 text-white p-6 sm:p-8 shadow-md border border-stone-800/80 flex flex-col lg:flex-row lg:items-center justify-between gap-5">
+        <div className="absolute -right-12 -top-12 w-56 h-56 rounded-full bg-amber-500/15 blur-3xl pointer-events-none" />
+
+        <div className="relative z-10 space-y-1.5">
+          <div className="inline-flex items-center gap-1.5 text-xs font-semibold text-amber-300 bg-amber-500/15 border border-amber-400/25 px-3 py-1 rounded-full">
+            <CalendarCheck className="w-3.5 h-3.5 text-amber-400" />
+            <span>Đặt bàn CoffeeHouse</span>
           </div>
-          <h1 className="text-2xl sm:text-3xl font-extrabold text-stone-800 tracking-tight">
+          <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight">
             Sơ đồ chỗ ngồi & Đặt bàn trước
           </h1>
-          <p className="text-sm text-stone-500 mt-1">
-            Chọn không gian yêu thích, kiểm tra bàn trống theo thời gian thực và đặt trước đồ uống
+          <p className="text-sm text-stone-300 max-w-2xl">
+            Chọn khu vực và bàn trống theo thời gian thực, đặt giờ đến hoặc kèm món gọi trước
           </p>
         </div>
 
-        <div className="flex flex-wrap items-center gap-2.5 self-start sm:self-center">
-          <div className="inline-flex p-1 rounded-xl bg-stone-100 border border-stone-200">
+        <div className="relative z-10 flex flex-wrap items-center gap-2.5 self-start lg:self-center">
+          <div className="inline-flex p-1 rounded-2xl bg-stone-950/70 border border-stone-700/80">
             <button
               type="button"
               onClick={() => setActiveTab('BOOK')}
-              className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all cursor-pointer ${
+              className={`px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer ${
                 activeTab === 'BOOK'
-                  ? 'bg-white text-amber-800 shadow-2xs'
-                  : 'text-stone-600 hover:text-stone-900'
+                  ? 'bg-amber-500 text-stone-950 shadow-sm'
+                  : 'text-stone-300 hover:text-white'
               }`}
             >
               Đặt bàn mới
@@ -624,15 +626,21 @@ const ReservationsPage = () => {
                 setActiveTab('HISTORY');
                 fetchMyReservations();
               }}
-              className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all inline-flex items-center gap-1.5 cursor-pointer ${
+              className={`px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all inline-flex items-center gap-1.5 cursor-pointer ${
                 activeTab === 'HISTORY'
-                  ? 'bg-white text-amber-800 shadow-2xs'
-                  : 'text-stone-600 hover:text-stone-900'
+                  ? 'bg-amber-500 text-stone-950 shadow-sm'
+                  : 'text-stone-300 hover:text-white'
               }`}
             >
               <span>Lịch của tôi</span>
               {accountId && (
-                <span className="px-1.5 py-0.5 rounded-full text-xs bg-amber-100 text-amber-900">
+                <span
+                  className={`px-2 py-0.5 rounded-full text-xs font-extrabold ${
+                    activeTab === 'HISTORY'
+                      ? 'bg-stone-950 text-amber-300'
+                      : 'bg-stone-800 text-amber-300'
+                  }`}
+                >
                   {activeHistoryCount > 0 ? activeHistoryCount : myReservations.length}
                 </span>
               )}
@@ -647,10 +655,12 @@ const ReservationsPage = () => {
                 ? fetchTablesAndAreas({ isInitial: false })
                 : fetchMyReservations()
             }
-            className="inline-flex items-center gap-1.5 px-3.5 py-2.5 rounded-xl border border-stone-300 bg-white hover:bg-stone-50 text-sm font-semibold text-stone-700 transition-colors cursor-pointer"
+            className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-2xl border border-stone-700 bg-stone-900/80 hover:bg-stone-800 text-xs sm:text-sm font-semibold text-stone-100 transition-colors cursor-pointer"
           >
             <RefreshCw
-              className={`w-4 h-4 ${refreshing || loadingHistory ? 'animate-spin' : ''}`}
+              className={`w-4 h-4 text-amber-400 ${
+                refreshing || loadingHistory ? 'animate-spin' : ''
+              }`}
             />
             <span>Làm mới</span>
           </button>
@@ -658,35 +668,35 @@ const ReservationsPage = () => {
       </div>
 
       {error && (
-        <div className="p-4 rounded-2xl bg-red-50 border border-red-200 text-red-700 text-sm flex items-start gap-2.5">
+        <div className="p-3.5 rounded-xl bg-red-50 border border-red-200 text-red-700 text-sm flex items-start gap-2.5">
           <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
           <span>{error}</span>
         </div>
       )}
 
       {successInfo && activeTab === 'BOOK' && (
-        <div className="p-5 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-900 space-y-2">
+        <div className="p-4 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-900 space-y-1.5">
           <div className="flex items-start justify-between gap-4">
-            <div className="flex items-center gap-2 font-bold text-base">
-              <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0" />
-              <span>Gửi yêu cầu đặt bàn thành công!</span>
+            <div className="flex items-center gap-2 font-bold text-sm">
+              <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+              <span>Gửi yêu cầu đặt bàn thành công</span>
             </div>
             <button
               type="button"
               onClick={() => setActiveTab('HISTORY')}
               className="text-xs font-semibold underline text-emerald-800 hover:text-emerald-950 cursor-pointer shrink-0"
             >
-              Xem lịch sử đặt bàn →
+              Xem lịch của tôi →
             </button>
           </div>
-          <p className="text-sm text-emerald-800">
-            Bàn đã chọn: <strong>{successInfo.tableLabels}</strong> • Thời gian:{' '}
+          <p className="text-xs text-emerald-800 leading-relaxed">
+            Bàn: <strong>{successInfo.tableLabels}</strong> • Thời gian:{' '}
             <strong>{formatDateTimeDisplay(successInfo.reservation?.reservationTime)}</strong> •{' '}
             <strong>{successInfo.reservation?.guestCount} khách</strong>.
             {successInfo.preorder && (
               <>
                 {' '}
-                Đã tạo kèm đơn đặt món trước mã{' '}
+                Đã tạo kèm đơn gọi món trước{' '}
                 <strong className="font-mono">{successInfo.preorder.orderCode}</strong>.
               </>
             )}
@@ -696,25 +706,25 @@ const ReservationsPage = () => {
 
       {activeTab === 'BOOK' ? (
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-          {/* Cột trái (7 phần): Sơ đồ chọn bàn theo khu vực */}
-          <div className="lg:col-span-7 bg-white rounded-2xl border border-stone-200 shadow-2xs p-6 space-y-4">
-            <div className="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-stone-100">
+          {/* Khung 1 (8 phần): Sơ đồ chọn bàn theo khu vực */}
+          <div className="lg:col-span-8 bg-white rounded-2xl border border-stone-200/90 shadow-2xs p-5 sm:p-6 space-y-4">
+            <div className="flex flex-wrap items-center justify-between gap-3 pb-3.5 border-b border-stone-100">
               <div className="flex items-center gap-2">
-                <MapPin className="w-5 h-5 text-amber-800" />
-                <h2 className="text-base font-bold text-stone-800">1. Chọn bàn trên sơ đồ</h2>
+                <MapPin className="w-4 h-4 text-amber-800" />
+                <h2 className="text-base font-bold text-stone-900">1. Chọn bàn trên sơ đồ</h2>
               </div>
 
               <div className="flex flex-wrap items-center gap-3 text-xs text-stone-500">
                 <span className="inline-flex items-center gap-1.5">
-                  <span className="w-2.5 h-2.5 rounded-full bg-emerald-500" />
-                  Còn trống ({tableCountsByStatus.AVAILABLE})
+                  <span className="w-2 h-2 rounded-full bg-emerald-500" />
+                  Trống ({tableCountsByStatus.AVAILABLE})
                 </span>
                 <span className="inline-flex items-center gap-1.5">
-                  <span className="w-2.5 h-2.5 rounded-full bg-amber-600" />
+                  <span className="w-2 h-2 rounded-full bg-amber-800" />
                   Đang chọn ({selectedTableIds.length})
                 </span>
                 <span className="inline-flex items-center gap-1.5">
-                  <span className="w-2.5 h-2.5 rounded-full bg-stone-300" />
+                  <span className="w-2 h-2 rounded-full bg-stone-300" />
                   Không khả dụng
                 </span>
               </div>
@@ -725,7 +735,7 @@ const ReservationsPage = () => {
               <div className="flex flex-wrap items-center gap-1.5">
                 {[
                   { key: 'ALL', label: `Tất cả (${tableCountsByStatus.ALL})` },
-                  { key: 'AVAILABLE', label: `Còn trống (${tableCountsByStatus.AVAILABLE})` },
+                  { key: 'AVAILABLE', label: `Trống (${tableCountsByStatus.AVAILABLE})` },
                   { key: 'OCCUPIED', label: `Có khách (${tableCountsByStatus.OCCUPIED})` },
                   { key: 'RESERVED', label: `Đã đặt (${tableCountsByStatus.RESERVED})` },
                 ].map((tab) => (
@@ -735,8 +745,8 @@ const ReservationsPage = () => {
                     onClick={() => setTableStatusFilter(tab.key)}
                     className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors cursor-pointer ${
                       tableStatusFilter === tab.key
-                        ? 'bg-stone-800 text-white'
-                        : 'bg-stone-100 text-stone-600 hover:bg-stone-200'
+                        ? 'bg-amber-800 text-white'
+                        : 'bg-stone-100 text-stone-600 hover:bg-stone-200/80'
                     }`}
                   >
                     {tab.label}
@@ -744,27 +754,27 @@ const ReservationsPage = () => {
                 ))}
               </div>
 
-              <div className="relative w-full sm:w-52">
+              <div className="relative w-full sm:w-56">
                 <input
                   type="text"
                   value={tableKeyword}
                   onChange={(e) => setTableKeyword(e.target.value)}
                   placeholder="Tìm số bàn, số chỗ..."
-                  className="w-full pl-8 pr-3 py-1.5 rounded-xl border border-stone-300 text-xs focus:outline-none focus:ring-2 focus:ring-amber-600"
+                  className="w-full pl-8 pr-3 py-1.5 rounded-xl border border-stone-300 text-xs text-stone-900 placeholder:text-stone-400 focus:outline-none focus:border-amber-800 focus:ring-1 focus:ring-amber-800"
                 />
-                <Search className="w-3.5 h-3.5 text-stone-400 absolute left-2.5 top-1/2 -translate-y-1/2" />
+                <Search className="w-3.5 h-3.5 text-stone-400 absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
               </div>
             </div>
 
             {/* Lọc theo khu vực */}
-            <div className="flex items-center gap-2 overflow-x-auto pb-1">
+            <div className="flex items-center gap-1.5 overflow-x-auto pb-1">
               <button
                 type="button"
                 onClick={() => setSelectedAreaId('ALL')}
-                className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all shrink-0 cursor-pointer ${
+                className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-colors shrink-0 cursor-pointer ${
                   selectedAreaId === 'ALL'
-                    ? 'bg-amber-700 text-white'
-                    : 'bg-amber-50 text-amber-900 hover:bg-amber-100'
+                    ? 'bg-amber-800 text-white'
+                    : 'bg-stone-100 text-stone-700 hover:bg-stone-200/80'
                 }`}
               >
                 Tất cả khu vực ({tableCountsByStatus.AVAILABLE} trống)
@@ -775,10 +785,10 @@ const ReservationsPage = () => {
                   key={area.id}
                   type="button"
                   onClick={() => setSelectedAreaId(String(area.id))}
-                  className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all shrink-0 cursor-pointer ${
+                  className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-colors shrink-0 cursor-pointer ${
                     String(selectedAreaId) === String(area.id)
-                      ? 'bg-amber-700 text-white'
-                      : 'bg-amber-50 text-amber-900 hover:bg-amber-100'
+                      ? 'bg-amber-800 text-white'
+                      : 'bg-stone-100 text-stone-700 hover:bg-stone-200/80'
                   }`}
                 >
                   {area.name} ({availableCountByArea[String(area.id)] || 0} trống)
@@ -788,11 +798,11 @@ const ReservationsPage = () => {
 
             {/* Lưới bàn */}
             {initialLoading ? (
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3.5">
-                {[...Array(6)].map((_, idx) => (
+              <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-3">
+                {[...Array(8)].map((_, idx) => (
                   <div
                     key={idx}
-                    className="h-28 rounded-2xl bg-stone-100 border border-stone-200 animate-pulse"
+                    className="h-28 rounded-xl bg-stone-100 border border-stone-200 animate-pulse"
                   />
                 ))}
               </div>
@@ -816,59 +826,70 @@ const ReservationsPage = () => {
               <div className="space-y-5 pt-1">
                 {groupedByArea.map(([areaName, areaTables]) => (
                   <section key={areaName} className="space-y-2.5">
-                    <div className="flex items-center gap-2">
-                      <span className="text-xs font-extrabold uppercase tracking-wider text-stone-600">
+                    <div className="flex items-center justify-between border-b border-stone-100 pb-1.5">
+                      <span className="text-xs font-bold uppercase tracking-wider text-stone-700">
                         {areaName}
                       </span>
-                      <span className="px-2 py-0.5 rounded-full bg-stone-100 text-stone-600 text-[11px] font-bold">
+                      <span className="text-xs font-medium text-stone-500">
                         {areaTables.length} bàn
                       </span>
                     </div>
 
-                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                    <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-3">
                       {areaTables.map((table) => renderTableCard(table))}
                     </div>
                   </section>
                 ))}
               </div>
             ) : (
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 pt-1">
+              <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-3 pt-1">
                 {filteredTables.map((table) => renderTableCard(table))}
               </div>
             )}
           </div>
 
-          {/* Cột phải (5 phần): Thông tin thời gian, số khách & xác nhận */}
+          {/* Form 2 (4 phần): Đồng bộ card trắng với khung 1, nút màu nâu */}
           <form
             onSubmit={handleCreateReservation}
-            className="lg:col-span-5 bg-white rounded-2xl border border-stone-200 shadow-2xs p-6 space-y-4 lg:sticky lg:top-20"
+            className="lg:col-span-4 bg-white rounded-2xl border border-stone-200/90 shadow-2xs p-5 sm:p-6 space-y-4 lg:sticky lg:top-20"
           >
-            <div className="flex items-center gap-2 pb-3 border-b border-stone-100">
-              <Clock className="w-5 h-5 text-amber-800" />
-              <h2 className="text-base font-bold text-stone-800">2. Thông tin lịch hẹn</h2>
+            <div className="flex items-center justify-between gap-2 pb-3.5 border-b border-stone-100">
+              <div className="flex items-center gap-2">
+                <Clock className="w-4 h-4 text-amber-800" />
+                <h2 className="text-base font-bold text-stone-900">2. Thông tin lịch hẹn</h2>
+              </div>
+              {selectedTables.length > 0 && (
+                <button
+                  type="button"
+                  onClick={() => setSelectedTableIds([])}
+                  className="text-xs font-medium text-amber-800 hover:text-amber-950 cursor-pointer"
+                >
+                  Bỏ chọn tất cả
+                </button>
+              )}
             </div>
 
             {/* Tóm tắt bàn đang chọn */}
-            <div className="p-3.5 rounded-xl bg-stone-50 border border-stone-200/80 space-y-2">
+            <div className="p-3.5 rounded-xl bg-stone-50/90 border border-stone-200/80 space-y-2">
               <div className="flex items-center justify-between text-xs">
-                <span className="text-stone-500">
-                  Bàn đã chọn ({selectedTables.length}):
+                <span className="text-stone-600 font-semibold">
+                  Bàn đã chọn ({selectedTables.length})
                 </span>
                 <span className="font-semibold text-stone-700">
-                  Tổng sức chứa: {totalSelectedCapacity} chỗ
+                  Sức chứa: {totalSelectedCapacity} chỗ
                 </span>
               </div>
 
               {selectedTables.length === 0 ? (
-                <p className="text-xs font-medium text-amber-800">
-                  Chưa chọn bàn nào (bấm vào bàn trống bên trái để chọn)
+                <p className="text-xs text-stone-500">
+                  Chưa chọn bàn nào. Bấm vào bàn trống bên trái để chọn.
                 </p>
               ) : (
                 <div className="flex flex-wrap gap-1.5 pt-0.5">
                   {selectedTables.map((t) => (
                     <span
                       key={t.id}
-                      className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-amber-100 text-amber-900 text-xs font-bold"
+                      className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-amber-800 text-white text-xs font-semibold"
                     >
                       <span>
                         {t.tableNumber} ({t.capacity} chỗ)
@@ -877,7 +898,7 @@ const ReservationsPage = () => {
                         type="button"
                         onClick={() => toggleSelectTable(t)}
                         title="Bỏ chọn bàn này"
-                        className="text-amber-800 hover:text-amber-950 cursor-pointer"
+                        className="text-amber-200 hover:text-white cursor-pointer"
                       >
                         <X className="w-3 h-3" />
                       </button>
@@ -887,72 +908,90 @@ const ReservationsPage = () => {
               )}
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-              <div>
-                <label
-                  htmlFor="reservationTime"
-                  className="block text-sm font-medium text-stone-700 mb-1"
-                >
-                  Thời gian đến <span className="text-red-500">*</span>
-                </label>
-                <input
-                  id="reservationTime"
-                  type="datetime-local"
-                  min={toDateTimeLocalString(new Date())}
-                  value={reservationTime}
-                  onChange={(e) => setReservationTime(e.target.value)}
-                  className="w-full px-3 py-2.5 rounded-xl border border-stone-300 text-sm focus:outline-none focus:ring-2 focus:ring-amber-600 focus:border-transparent"
-                />
-              </div>
+            {/* Thời gian đến */}
+            <div>
+              <label
+                htmlFor="reservationTime"
+                className="block text-xs font-semibold text-stone-700 mb-1.5"
+              >
+                Thời gian đến <span className="text-red-600">*</span>
+              </label>
+              <input
+                id="reservationTime"
+                type="datetime-local"
+                min={toDateTimeLocalString(new Date())}
+                value={reservationTime}
+                onChange={(e) => setReservationTime(e.target.value)}
+                className="w-full px-3.5 py-2.5 rounded-xl border border-stone-300 bg-white text-sm text-stone-900 focus:outline-none focus:border-amber-800 focus:ring-1 focus:ring-amber-800"
+              />
+            </div>
 
-              <div>
+            {/* Số lượng khách (giống bố cục cũ + nút chọn nhanh màu nâu) */}
+            <div>
+              <div className="flex items-center justify-between mb-1.5">
                 <label
                   htmlFor="guestCount"
-                  className="block text-sm font-medium text-stone-700 mb-1"
+                  className="text-xs font-semibold text-stone-700"
                 >
-                  Số lượng khách <span className="text-red-500">*</span>
+                  Số lượng khách <span className="text-red-600">*</span>
                 </label>
-                <div className="relative">
-                  <input
-                    id="guestCount"
-                    type="number"
-                    min={1}
-                    max={50}
-                    value={guestCount}
-                    onChange={(e) => setGuestCount(e.target.value)}
-                    className="w-full pl-9 pr-3 py-2.5 rounded-xl border border-stone-300 text-sm focus:outline-none focus:ring-2 focus:ring-amber-600 focus:border-transparent"
-                  />
-                  <Users className="w-4 h-4 text-stone-400 absolute left-3 top-1/2 -translate-y-1/2" />
-                </div>
-                <div className="flex items-center gap-1.5 mt-1.5">
-                  {GUEST_PRESETS.map((num) => (
-                    <button
-                      key={num}
-                      type="button"
-                      onClick={() => setGuestCount(num)}
-                      className={`px-2 py-0.5 rounded text-[11px] font-semibold cursor-pointer ${
-                        Number(guestCount) === num
-                          ? 'bg-amber-700 text-white'
-                          : 'bg-stone-100 text-stone-600 hover:bg-stone-200'
-                      }`}
-                    >
-                      {num} người
-                    </button>
-                  ))}
-                </div>
+                {selectedTables.length > 0 && (
+                  <span
+                    className={`text-[11px] font-medium ${
+                      Number(guestCount) > totalSelectedCapacity
+                        ? 'text-amber-700'
+                        : 'text-emerald-700'
+                    }`}
+                  >
+                    {Number(guestCount) > totalSelectedCapacity
+                      ? `Thiếu ${Number(guestCount) - totalSelectedCapacity} chỗ`
+                      : 'Đủ sức chứa'}
+                  </span>
+                )}
+              </div>
+
+              <div className="relative">
+                <input
+                  id="guestCount"
+                  type="number"
+                  min={1}
+                  max={50}
+                  value={guestCount}
+                  onChange={(e) => setGuestCount(e.target.value)}
+                  className="w-full pl-9 pr-3.5 py-2.5 rounded-xl border border-stone-300 bg-white text-sm text-stone-900 focus:outline-none focus:border-amber-800 focus:ring-1 focus:ring-amber-800"
+                />
+                <Users className="w-4 h-4 text-stone-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+              </div>
+
+              <div className="flex items-center gap-1.5 mt-2 flex-wrap">
+                {GUEST_PRESETS.map((num) => (
+                  <button
+                    key={num}
+                    type="button"
+                    onClick={() => setGuestCount(num)}
+                    className={`px-2.5 py-1 rounded-lg text-xs font-semibold cursor-pointer transition-colors ${
+                      Number(guestCount) === num
+                        ? 'bg-amber-800 text-white'
+                        : 'bg-stone-100 text-stone-700 hover:bg-stone-200/80'
+                    }`}
+                  >
+                    {num} người
+                  </button>
+                ))}
               </div>
             </div>
 
             {selectedTables.length > 0 && Number(guestCount) > totalSelectedCapacity && (
               <p className="text-xs text-amber-800 bg-amber-50 border border-amber-200 rounded-xl px-3 py-2">
-                Số khách ({guestCount}) đang lớn hơn sức chứa bàn đã chọn ({totalSelectedCapacity}{' '}
-                chỗ). Bạn có thể chọn thêm 1 bàn ghép cạnh nhau.
+                Số khách ({guestCount}) lớn hơn sức chứa bàn đã chọn ({totalSelectedCapacity} chỗ).
+                Bạn có thể chọn thêm bàn để ghép.
               </p>
             )}
 
+            {/* Ghi chú */}
             <div>
-              <label htmlFor="note" className="block text-sm font-medium text-stone-700 mb-1">
-                Ghi chú cho quán (tùy chọn)
+              <label htmlFor="note" className="block text-xs font-semibold text-stone-700 mb-1.5">
+                Ghi chú cho quán <span className="font-normal text-stone-400">(tùy chọn)</span>
               </label>
               <div className="relative">
                 <input
@@ -961,32 +1000,29 @@ const ReservationsPage = () => {
                   value={note}
                   onChange={(e) => setNote(e.target.value)}
                   placeholder="Ví dụ: Cần ổ cắm điện, bàn gần cửa sổ..."
-                  className="w-full pl-9 pr-3.5 py-2.5 rounded-xl border border-stone-300 text-sm focus:outline-none focus:ring-2 focus:ring-amber-600 focus:border-transparent"
+                  className="w-full pl-9 pr-3.5 py-2.5 rounded-xl border border-stone-300 bg-white text-sm text-stone-900 placeholder:text-stone-400 focus:outline-none focus:border-amber-800 focus:ring-1 focus:ring-amber-800"
                 />
-                <FileText className="w-4 h-4 text-stone-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                <FileText className="w-4 h-4 text-stone-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
               </div>
             </div>
 
             {/* Khối đặt món trước nếu khách đã chọn món ở MenuPage */}
             {preselectedItems.length > 0 && (
-              <div className="p-3.5 rounded-xl bg-amber-50/70 border border-amber-200 space-y-2.5">
+              <div className="p-3.5 rounded-xl bg-amber-50/50 border border-amber-200 space-y-2">
                 <label className="flex items-start gap-2.5 cursor-pointer select-none">
                   <input
                     type="checkbox"
                     checked={includePreorder}
                     onChange={(e) => setIncludePreorder(e.target.checked)}
-                    className="mt-0.5 rounded border-stone-300 text-amber-700 focus:ring-amber-600"
+                    className="mt-0.5 rounded border-stone-300 text-amber-800 focus:ring-amber-800"
                   />
                   <div className="text-xs">
-                    <p className="font-bold text-amber-950 flex items-center gap-1">
-                      <Sparkles className="w-3.5 h-3.5 text-amber-700" />
-                      <span>
-                        Đặt trước {preselectedItems.reduce((s, i) => s + i.quantity, 0)} món từ
-                        khay chọn ({formatPrice(preorderSubtotal)})
-                      </span>
+                    <p className="font-bold text-stone-900">
+                      Đặt trước {preselectedItems.reduce((s, i) => s + i.quantity, 0)} món từ khay
+                      chọn ({formatPrice(preorderSubtotal)})
                     </p>
-                    <p className="text-amber-900/80 mt-0.5">
-                      Quán sẽ chuẩn bị sẵn đồ uống đúng giờ bạn đến.
+                    <p className="text-stone-600 mt-0.5">
+                      Chuẩn bị sẵn đồ uống trước giờ bạn đến.
                     </p>
                   </div>
                 </label>
@@ -1012,7 +1048,7 @@ const ReservationsPage = () => {
             <button
               type="submit"
               disabled={submitting}
-              className="w-full py-3.5 px-4 rounded-xl bg-amber-700 hover:bg-amber-800 disabled:bg-amber-400 text-white text-sm font-semibold shadow-sm transition-colors flex items-center justify-center gap-2 cursor-pointer"
+              className="w-full py-2.5 px-4 rounded-xl bg-amber-800 hover:bg-amber-900 disabled:bg-stone-400 text-white text-sm font-semibold transition-colors flex items-center justify-center gap-2 cursor-pointer"
             >
               {submitting && (
                 <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
@@ -1030,7 +1066,7 @@ const ReservationsPage = () => {
       ) : (
         /* Tab 2: Lịch đặt bàn của tôi (4 trạng thái: PENDING, CONFIRMED, COMPLETED, CANCELLED) */
         <div className="space-y-4">
-          <div className="bg-white rounded-2xl border border-stone-200 p-4 shadow-2xs flex flex-wrap items-center gap-2">
+          <div className="bg-white rounded-2xl border border-stone-200/90 p-3.5 shadow-2xs flex flex-wrap items-center gap-1.5">
             {[
               { key: 'ALL', label: `Tất cả (${myReservations.length})` },
               {
@@ -1064,8 +1100,8 @@ const ReservationsPage = () => {
                 onClick={() => setResvStatusFilter(tab.key)}
                 className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-colors cursor-pointer ${
                   resvStatusFilter === tab.key
-                    ? 'bg-stone-800 text-white'
-                    : 'bg-stone-100 text-stone-700 hover:bg-stone-200'
+                    ? 'bg-amber-800 text-white'
+                    : 'bg-stone-100 text-stone-700 hover:bg-stone-200/80'
                 }`}
               >
                 {tab.label}
@@ -1074,18 +1110,18 @@ const ReservationsPage = () => {
           </div>
 
           {loadingHistory ? (
-            <div className="space-y-3">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {[...Array(3)].map((_, idx) => (
                 <div
                   key={idx}
-                  className="h-28 bg-white rounded-2xl border border-stone-200 animate-pulse"
+                  className="h-32 bg-white rounded-2xl border border-stone-200 animate-pulse"
                 />
               ))}
             </div>
           ) : filteredMyReservations.length === 0 ? (
-            <div className="bg-white rounded-2xl border border-stone-200 py-16 px-4 text-center space-y-3">
-              <Coffee className="w-12 h-12 text-stone-300 mx-auto" />
-              <h3 className="text-base font-bold text-stone-800">
+            <div className="bg-white rounded-2xl border border-stone-200/90 py-16 px-4 text-center space-y-2.5">
+              <Coffee className="w-10 h-10 text-stone-300 mx-auto" />
+              <h3 className="text-base font-semibold text-stone-800">
                 Chưa có lịch đặt bàn nào phù hợp
               </h3>
               <p className="text-sm text-stone-500">
@@ -1094,13 +1130,13 @@ const ReservationsPage = () => {
               <button
                 type="button"
                 onClick={() => setActiveTab('BOOK')}
-                className="mt-2 px-5 py-2.5 rounded-xl bg-amber-700 hover:bg-amber-800 text-white text-sm font-semibold transition-colors cursor-pointer"
+                className="mt-2 px-4 py-2 rounded-xl bg-amber-800 hover:bg-amber-900 text-white text-sm font-semibold transition-colors cursor-pointer"
               >
                 Đặt bàn ngay
               </button>
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {filteredMyReservations.map((resv) => {
                 const statusKey = (resv.status || 'PENDING').toUpperCase();
                 const cfg =
@@ -1110,7 +1146,7 @@ const ReservationsPage = () => {
                 return (
                   <div
                     key={resv.id}
-                    className="bg-white rounded-2xl border border-stone-200 p-5 shadow-2xs flex flex-col justify-between gap-4"
+                    className="bg-white rounded-2xl border border-stone-200/90 p-5 shadow-2xs flex flex-col justify-between gap-4"
                   >
                     <div className="space-y-3">
                       <div className="flex items-start justify-between gap-3">
@@ -1118,13 +1154,13 @@ const ReservationsPage = () => {
                           <span className="text-xs font-mono text-stone-400">
                             Lịch hẹn #{resv.id}
                           </span>
-                          <h3 className="text-base font-bold text-stone-800 mt-0.5">
+                          <h3 className="text-base font-bold text-stone-900 mt-0.5">
                             {formatDateTimeDisplay(resv.reservationTime)}
                           </h3>
                         </div>
 
                         <span
-                          className={`px-2.5 py-1 rounded-full text-xs font-semibold border ${cfg.badgeClass}`}
+                          className={`px-2.5 py-0.5 rounded-md text-xs font-medium border ${cfg.badgeClass}`}
                         >
                           {cfg.label}
                         </span>
@@ -1132,7 +1168,7 @@ const ReservationsPage = () => {
 
                       <div className="flex flex-wrap items-center gap-3 text-xs text-stone-600">
                         <span className="inline-flex items-center gap-1.5 font-medium">
-                          <Users className="w-4 h-4 text-amber-700" />
+                          <Users className="w-3.5 h-3.5 text-stone-400" />
                           <span>{resv.guestCount} khách</span>
                         </span>
 
@@ -1141,7 +1177,7 @@ const ReservationsPage = () => {
                             {resv.tables.map((t) => (
                               <span
                                 key={t.id}
-                                className="px-2 py-0.5 rounded-md bg-amber-50 border border-amber-200/80 text-amber-900 font-semibold"
+                                className="px-2 py-0.5 rounded-md bg-stone-100 border border-stone-200 text-stone-800 font-semibold"
                               >
                                 Bàn {t.tableNumber} ({t.areaName || 'Chung'})
                               </span>
@@ -1151,13 +1187,13 @@ const ReservationsPage = () => {
                       </div>
 
                       {resv.note && (
-                        <p className="text-xs text-stone-500 bg-stone-50 border border-stone-200/80 rounded-xl p-2.5">
+                        <p className="text-xs text-stone-600 bg-stone-50 border border-stone-200/80 rounded-xl p-2.5">
                           Ghi chú: {resv.note}
                         </p>
                       )}
                     </div>
 
-                    <div className="pt-3 border-t border-stone-100 flex items-center justify-between text-xs text-stone-400">
+                    <div className="pt-3 border-t border-stone-100 flex items-center justify-between gap-2 text-xs text-stone-400">
                       <span>Tạo lúc: {formatDateTimeDisplay(resv.createdAt)}</span>
 
                       {canCancel && (
@@ -1165,7 +1201,7 @@ const ReservationsPage = () => {
                           type="button"
                           disabled={cancellingId === resv.id}
                           onClick={() => handleCancelReservation(resv.id)}
-                          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-red-200 text-red-600 hover:bg-red-50 font-semibold transition-colors cursor-pointer disabled:opacity-50"
+                          className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg border border-red-200 text-red-600 hover:bg-red-50 font-semibold transition-colors cursor-pointer disabled:opacity-50 shrink-0"
                         >
                           <XCircle className="w-3.5 h-3.5" />
                           <span>
@@ -1185,7 +1221,7 @@ const ReservationsPage = () => {
       {/* Toast thông báo nổi */}
       {toast.message && (
         <div
-          className={`fixed bottom-5 right-5 z-50 max-w-sm px-4 py-3 rounded-2xl border shadow-lg text-sm flex items-center gap-2.5 ${
+          className={`fixed bottom-5 right-5 z-50 max-w-sm px-4 py-3 rounded-xl border shadow-lg text-sm flex items-center gap-2.5 ${
             toast.type === 'error'
               ? 'bg-red-50 border-red-200 text-red-800'
               : 'bg-emerald-50 border-emerald-200 text-emerald-900'

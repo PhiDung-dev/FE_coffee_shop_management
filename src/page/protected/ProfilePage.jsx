@@ -382,7 +382,7 @@ const ProfilePage = () => {
   }
 
   return (
-    <div className="max-w-5xl mx-auto space-y-6 pb-8">
+    <div className="w-full mx-auto space-y-6 pb-8">
       {/* Thẻ tổng quan hồ sơ */}
       <div className="bg-white rounded-2xl border border-stone-200 shadow-sm p-6 flex flex-col sm:flex-row items-center gap-5">
         <div className="w-20 h-20 rounded-2xl bg-amber-100 text-amber-800 flex items-center justify-center overflow-hidden border border-amber-200 shrink-0">

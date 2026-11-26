@@ -18,6 +18,7 @@ import {
   Check,
   UserCheck,
   Ban,
+  LayoutGrid,
 } from 'lucide-react';
 import areaService from '../../service/areaService';
 import tableService from '../../service/tableService';
@@ -28,7 +29,7 @@ const STATUS_META = {
   AVAILABLE: {
     label: 'Bàn trống',
     shortLabel: 'Trống',
-    cardClass: 'border-emerald-200/90 bg-white hover:border-emerald-400',
+    cardClass: 'border-emerald-200/90 bg-white hover:border-emerald-400 hover:-translate-y-0.5',
     badgeClass: 'bg-emerald-50 text-emerald-700 border-emerald-200',
     dotClass: 'bg-emerald-500',
     icon: Sparkles,
@@ -36,7 +37,7 @@ const STATUS_META = {
   OCCUPIED: {
     label: 'Đang phục vụ',
     shortLabel: 'Có khách',
-    cardClass: 'border-amber-300/90 bg-amber-50/30 hover:border-amber-500',
+    cardClass: 'border-amber-300/90 bg-amber-50/35 hover:border-amber-500 hover:-translate-y-0.5',
     badgeClass: 'bg-amber-50 text-amber-800 border-amber-200',
     dotClass: 'bg-amber-500',
     icon: UtensilsCrossed,
@@ -44,7 +45,7 @@ const STATUS_META = {
   RESERVED: {
     label: 'Đã đặt trước',
     shortLabel: 'Đặt trước',
-    cardClass: 'border-sky-200/90 bg-sky-50/25 hover:border-sky-400',
+    cardClass: 'border-sky-200/90 bg-sky-50/30 hover:border-sky-400 hover:-translate-y-0.5',
     badgeClass: 'bg-sky-50 text-sky-700 border-sky-200',
     dotClass: 'bg-sky-500',
     icon: CalendarCheck,
@@ -52,7 +53,7 @@ const STATUS_META = {
   MAINTENANCE: {
     label: 'Tạm ngưng / Bảo trì',
     shortLabel: 'Bảo trì',
-    cardClass: 'border-stone-200 bg-stone-100/70 opacity-80 hover:border-stone-400',
+    cardClass: 'border-stone-200 bg-stone-100/75 opacity-85 hover:border-stone-400',
     badgeClass: 'bg-stone-200 text-stone-700 border-stone-300',
     dotClass: 'bg-stone-400',
     icon: Wrench,
@@ -390,11 +391,14 @@ const StaffTablesPage = () => {
       <div
         key={table.id}
         onClick={() => handleOpenTableDetail(table)}
-        className={`p-4 rounded-2xl border transition-all shadow-2xs cursor-pointer flex flex-col justify-between min-h-[156px] ${meta.cardClass}`}
+        className={`p-4 rounded-2xl border transition-all shadow-2xs hover:shadow-sm cursor-pointer flex flex-col justify-between min-h-[156px] ${meta.cardClass}`}
       >
         <div className="space-y-1.5">
           <div className="flex items-start justify-between gap-2">
-            <h3 className="text-lg font-extrabold text-stone-800">{table.tableNumber}</h3>
+            <div className="flex items-center gap-2">
+              <span className={`w-2 h-2 rounded-full shrink-0 ${meta.dotClass}`} />
+              <h3 className="text-lg font-extrabold text-stone-800">{table.tableNumber}</h3>
+            </div>
             <span
               className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold border shrink-0 ${meta.badgeClass}`}
             >
@@ -403,7 +407,7 @@ const StaffTablesPage = () => {
             </span>
           </div>
 
-          <p className="text-xs text-stone-500 flex items-center gap-1 truncate">
+          <p className="text-xs text-stone-500 flex items-center gap-1 truncate pl-4">
             <MapPin className="w-3.5 h-3.5 text-amber-700 shrink-0" />
             <span className="truncate">{areaLabel}</span>
           </p>
@@ -444,24 +448,37 @@ const StaffTablesPage = () => {
 
   return (
     <div className="space-y-6 pb-14">
-      {/* Header */}
-      <div className="bg-white rounded-2xl border border-stone-200 p-6 shadow-2xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-extrabold text-stone-800">
+      {/* Header nổi bật đồng bộ màu sắc với các trang khác */}
+      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-stone-950 via-stone-900 to-amber-950 text-white p-6 sm:p-8 shadow-md border border-stone-800/80 flex flex-col lg:flex-row lg:items-center justify-between gap-5">
+        <div className="absolute -right-12 -top-12 w-56 h-56 rounded-full bg-amber-500/15 blur-3xl pointer-events-none" />
+
+        <div className="relative z-10 space-y-1.5">
+          <div className="inline-flex items-center gap-1.5 text-xs font-semibold text-amber-300 bg-amber-500/15 border border-amber-400/25 px-3 py-1 rounded-full">
+            <LayoutGrid className="w-3.5 h-3.5 text-amber-400" />
+            <span>Sơ đồ khu vực & Phục vụ tại quán</span>
+          </div>
+          <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight">
             Sơ đồ bàn & Phục vụ tại quầy
           </h1>
-          <p className="text-sm text-stone-500 mt-0.5">
+          <p className="text-sm text-stone-300 max-w-2xl">
             Theo dõi tình trạng bàn theo khu vực, xử lý lịch đặt trước, xem đơn đang mở và nhận
             order
           </p>
         </div>
 
-        <div className="flex flex-wrap items-center gap-2.5 self-start sm:self-center">
+        <div className="relative z-10 flex flex-wrap items-center gap-2.5 self-start lg:self-center">
+          <div className="px-4 py-2 rounded-2xl bg-stone-900/85 border border-stone-700/80 text-xs">
+            <span className="text-stone-400 block">Bàn trống</span>
+            <span className="text-sm font-extrabold text-emerald-300">
+              {countsByStatus.AVAILABLE} / {countsByStatus.ALL} bàn
+            </span>
+          </div>
+
           <Link
             to="/staff/orders"
-            className="inline-flex items-center gap-1.5 px-3.5 py-2.5 rounded-xl border border-stone-300 bg-white hover:bg-stone-50 text-sm font-semibold text-stone-700"
+            className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-2xl border border-stone-700 bg-stone-900/80 hover:bg-stone-800 text-xs sm:text-sm font-semibold text-stone-100 transition-colors"
           >
-            <ShoppingBag className="w-4 h-4 text-amber-700" />
+            <ShoppingBag className="w-4 h-4 text-amber-400" />
             <span>Danh sách đơn</span>
           </Link>
 
@@ -469,7 +486,7 @@ const StaffTablesPage = () => {
             type="button"
             disabled={refreshing}
             onClick={() => fetchBoardData({ isInitial: false })}
-            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl border border-stone-300 bg-white hover:bg-stone-50 text-sm font-semibold text-stone-700 transition-colors cursor-pointer"
+            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-amber-500 hover:bg-amber-400 text-stone-950 text-xs sm:text-sm font-bold shadow-sm transition-colors cursor-pointer"
           >
             <RefreshCw className={`w-4 h-4 ${refreshing ? 'animate-spin' : ''}`} />
             <span>Làm mới sơ đồ</span>
@@ -613,7 +630,7 @@ const StaffTablesPage = () => {
                   {selectedTable.areaName ||
                     areaNameById[Number(selectedTable.areaId)] ||
                     'Khu vực chung'}{' '}
-                  • Sức chứa {selectedTable.capacity} người
+                  - Sức chứa {selectedTable.capacity} người
                 </p>
               </div>
 
